@@ -2,6 +2,12 @@
 	"name": "gerrit-workflow",
 	"displayName": "Gerrit Workflow",
 	"description": "Gerrit Workflow integration for VSCode",
+	"icon": "icons/Gerrit_icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/harikrishnan94/vscode-gerrit-workflow.git"
+	},
+	"homepage": "https://github.com/harikrishnan94/vscode-gerrit-workflow/blob/main/README.md",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.69.0"
