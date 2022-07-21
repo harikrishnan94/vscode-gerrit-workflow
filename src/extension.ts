@@ -1,7 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { Axios } from 'axios';
+import { Axios, AxiosError } from 'axios';
 import * as vscode from 'vscode';
+import { updateUserInformation } from './userInformation';
 
 const axios: Axios = require('axios')
 
@@ -68,8 +69,8 @@ async function getGerritPassword(): Promise<string> {
 	return password
 }
 
-function registerSetupCommand(context: vscode.ExtensionContext) {
-	let disposable = vscode.commands.registerCommand('gerrit-workflow.enterCrendentials', async () => {
+function registerAddCredentialCommand(context: vscode.ExtensionContext) {
+	let disposable = vscode.commands.registerCommand('gerrit-workflow.addCrendential', async () => {
 		try {
 			const serverUrl = await getGerritServerURL();
 			const username = await getGerritUserName();
@@ -86,11 +87,16 @@ function registerSetupCommand(context: vscode.ExtensionContext) {
 				},
 			}
 
-			const response = await axios.request(reqOptions)
-			vscode.window.showInformationMessage(response.data)
+			const response = await axios.request<string>(reqOptions)
+			await updateUserInformation(context, serverUrl, JSON.parse(response.data.split('\n')[1]), password);
+			vscode.window.showInformationMessage("Saved!")
 		} catch (error) {
-			if (error instanceof Error) { vscode.window.showErrorMessage(error.message); return; }
-			vscode.window.showErrorMessage(JSON.stringify(error))
+			const reportError = (msg: string) => {
+				vscode.window.showErrorMessage(`Credentials verification failed: ${msg}`);
+			};
+			if (error instanceof AxiosError) { reportError(`${error.message}(${error.response?.statusText!})`); }
+			else if (error instanceof Error) { reportError(error.message); }
+			else { reportError(JSON.stringify(error)); }
 		}
 	});
 
@@ -105,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "gerrit-workflow" is now active!');
-	registerSetupCommand(context);
+	registerAddCredentialCommand(context);
 }
 
 // this method is called when your extension is deactivated

@@ -16,14 +16,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:gerrit-workflow.enterCrendentials"
+		"onCommand:gerrit-workflow.addCrendential"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "gerrit-workflow.enterCrendentials",
-				"title": "Gerrit: Enter Credentials"
+				"command": "gerrit-workflow.addCrendential",
+				"title": "Gerrit: Add Credential"
 			}
 		],
 		"configuration": [
@@ -67,6 +67,7 @@
 		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
-		"axios": "^0.27.2"
+		"axios": "^0.27.2",
+		"normalize-url": "^7.0.3"
 	}
 }
