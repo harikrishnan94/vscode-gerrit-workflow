@@ -2,17 +2,25 @@ import * as vscode from "vscode";
 
 const keyPrefix = "gerrit-workflow";
 
+type WorkspaceOrGlobal = "InWorkspace" | "InGlobal";
+
 export function get<T>(
+    key: string,
     context: vscode.ExtensionContext,
-    key: string
+    scope: WorkspaceOrGlobal = "InGlobal"
 ): T | undefined {
-    return context.globalState.get<T>(`${keyPrefix}/${key}`);
+    if (scope == "InGlobal")
+        return context.globalState.get<T>(`${keyPrefix}/${key}`);
+    return context.workspaceState.get<T>(`${keyPrefix}/${key}`);
 }
 
 export async function update<T>(
-    context: vscode.ExtensionContext,
     key: string,
-    value: T
+    value: T,
+    context: vscode.ExtensionContext,
+    scope: WorkspaceOrGlobal = "InGlobal"
 ): Promise<void> {
-    await context.globalState.update(`${keyPrefix}/${key}`, value);
+    if (scope == "InGlobal")
+        await context.globalState.update(`${keyPrefix}/${key}`, value);
+    await context.workspaceState.update(`${keyPrefix}/${key}`, value);
 }

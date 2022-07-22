@@ -2,6 +2,7 @@ import { Axios, Method, AxiosRequestConfig } from "axios";
 import { Credential } from "./credentialStore";
 import * as vscode from "vscode";
 import { assert } from "console";
+import { get, update } from "./dataStore";
 
 const axios: Axios = require("axios");
 
@@ -14,16 +15,34 @@ export class Connection {
     }
 }
 
-let selectedConnection: Connection | undefined;
+const defaultCredentialKey = "defaultCredential";
+let workspaceDefaultConnection: Connection | undefined;
 
-export async function setConnection(
+export async function loadWorkspaceDefaultConnection(
+    context: vscode.ExtensionContext
+) {
+    const credential = get<Credential>(
+        defaultCredentialKey,
+        context,
+        "InWorkspace"
+    );
+
+    if (credential) await setWorspaceDefaultConnection(credential, context);
+}
+
+export function hasDefaultConnection(): boolean {
+    return workspaceDefaultConnection !== undefined;
+}
+
+export async function setWorspaceDefaultConnection(
     credential: Credential,
     context: vscode.ExtensionContext
 ): Promise<boolean> {
     let password = await context.secrets.get(credential.passkey);
     if (!password) return false;
 
-    selectedConnection = new Connection(credential, password);
+    workspaceDefaultConnection = new Connection(credential, password);
+    await update(defaultCredentialKey, credential, context, "InWorkspace");
 
     return true;
 }
@@ -57,14 +76,14 @@ export async function request<Result>(
     method: Method,
     path: string
 ): Promise<Result> {
-    assert(selectedConnection !== undefined);
+    assert(workspaceDefaultConnection !== undefined);
     assert(method === "GET" || method === "PUT");
 
     return await bareRequest<Result>(
         method,
         path,
-        selectedConnection!.credential.serverURL,
-        selectedConnection!.credential.username,
-        selectedConnection!.password
+        workspaceDefaultConnection!.credential.serverURL,
+        workspaceDefaultConnection!.credential.username,
+        workspaceDefaultConnection!.password
     );
 }

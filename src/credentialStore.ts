@@ -9,7 +9,7 @@ export class Credential {
     // Key to retrieve the password from vscode secrets.
     passkey: string;
 
-    constructor(serverURL: string, self: GetSelfResponse) {
+    constructor(serverURL: string, self: SelfResponse) {
         this.serverURL = normalizeUrl(serverURL, { sortQueryParameters: true });
         this.username = self.username;
         this.accountid = self._account_id;
@@ -19,23 +19,11 @@ export class Credential {
     }
 }
 
-export class GetSelfResponse {
+export interface SelfResponse {
     _account_id: number;
     name: string;
     username: string;
     email: string;
-
-    constructor(
-        account_id: number,
-        name: string,
-        username: string,
-        email: string
-    ) {
-        this._account_id = account_id;
-        this.name = name;
-        this.username = username;
-        this.email = email;
-    }
 }
 
 let fs = vscode.workspace.fs;
@@ -44,7 +32,7 @@ const credentialsKey = "credentials";
 async function readCredentialsDB(
     context: vscode.ExtensionContext
 ): Promise<Credential[]> {
-    let credentials = get<Credential[]>(context, credentialsKey);
+    let credentials = get<Credential[]>(credentialsKey, context);
     if (credentials) return credentials!;
     return [];
 }
@@ -52,7 +40,7 @@ async function readCredentialsDB(
 export async function addCredential(
     context: vscode.ExtensionContext,
     serverURL: string,
-    self: GetSelfResponse,
+    self: SelfResponse,
     password: string
 ) {
     const credential = new Credential(serverURL, self);
@@ -66,7 +54,7 @@ export async function addCredential(
         credentials.push(credential);
     }
     await context.secrets.store(credential.passkey, password);
-    await update(context, credentialsKey, credentials);
+    await update(credentialsKey, credentials, context);
 }
 
 export async function getAllCredentials(
@@ -76,5 +64,5 @@ export async function getAllCredentials(
 }
 
 export async function clearCredentials(context: vscode.ExtensionContext) {
-    await update(context, credentialsKey, []);
+    await update(credentialsKey, [], context);
 }

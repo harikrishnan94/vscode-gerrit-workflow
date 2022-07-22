@@ -18,7 +18,8 @@
     "activationEvents": [
         "onCommand:gerrit-workflow.addCrendential",
         "onCommand:gerrit-workflow.selectCredential",
-        "onCommand:gerrit-workflow.clearCredentials"
+        "onCommand:gerrit-workflow.clearCredentials",
+        "onView:projectsView"
     ],
     "main": "./dist/extension.js",
     "contributes": {
@@ -34,6 +35,31 @@
             {
                 "command": "gerrit-workflow.clearCredentials",
                 "title": "Gerrit: Clear Stored Credentials"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "gerrit-change-explorer",
+                    "title": "Gerrit Change Explorer",
+                    "icon": "icons/Gerrit.svg"
+                }
+            ]
+        },
+        "views": {
+            "gerrit-change-explorer": [
+                {
+                    "id": "projectsView",
+                    "name": "Projects",
+                    "icon": "icons/project.svg",
+                    "contextualTitle": "Projects Explorer"
+                }
+            ]
+        },
+        "viewsWelcome": [
+            {
+                "view": "projectsView",
+                "contents": "No Gerrit Account information found.\n[Select Gerrit Account](command:gerrit-workflow.selectCredential)"
             }
         ],
         "configuration": [

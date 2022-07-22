@@ -5,10 +5,15 @@ import {
     addCredential,
     clearCredentials,
     getAllCredentials,
-    GetSelfResponse as SelfResponse,
+    SelfResponse as SelfResponse,
 } from "./credentialStore";
 import { reportError } from "./errorHandling";
-import { bareRequest, setConnection } from "./request";
+import { ProjectsDataProvider } from "./projectsView";
+import {
+    bareRequest,
+    loadWorkspaceDefaultConnection,
+    setWorspaceDefaultConnection,
+} from "./request";
 
 async function getGerritServerURL(): Promise<string> {
     let serverURL = vscode.workspace
@@ -118,13 +123,16 @@ async function selectCredential(context: vscode.ExtensionContext) {
         title: "Select Gerrit Account Information to use",
     });
     if (userPick) {
-        console.log(`Credential selected ${userPick.label}`);
-
-        if (!(await setConnection(userPick.credential, context))) {
+        let success = await setWorspaceDefaultConnection(
+            userPick.credential,
+            context
+        );
+        if (!success) {
             vscode.window.showErrorMessage(
                 `Cannot find password for: ${userPick.label}`
             );
         }
+        await ProjectsDataProvider.instance().refresh();
     }
 }
 
@@ -190,9 +198,20 @@ export function activate(context: vscode.ExtensionContext) {
     console.log(
         'Congratulations, your extension "gerrit-workflow" is now active!'
     );
+
+    // Register Commands
     registerAddCredentialCommand(context);
     registerSelectCredentialCommand(context);
     registerClearCredentialsCommand(context);
+
+    // Register views
+    loadWorkspaceDefaultConnection(context).then(async () => {
+        vscode.window.registerTreeDataProvider(
+            "projectsView",
+            ProjectsDataProvider.instance()
+        );
+        await ProjectsDataProvider.instance().refresh();
+    });
 }
 
 // this method is called when your extension is deactivated
