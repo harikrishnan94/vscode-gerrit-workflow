@@ -1,4 +1,4 @@
-import { Axios } from "axios";
+import { Axios, Method, AxiosRequestConfig } from "axios";
 import { Credential } from "./credentialStore";
 import * as vscode from "vscode";
 import { assert } from "console";
@@ -29,7 +29,7 @@ export async function setConnection(
 }
 
 export async function bareRequest<Result>(
-    method: string,
+    method: Method,
     path: string,
     serverURL: string,
     username: string,
@@ -38,7 +38,7 @@ export async function bareRequest<Result>(
     assert(method === "GET" || method === "PUT");
 
     let authToken = Buffer.from(`${username}:${password}`).toString("base64");
-    let reqOptions = {
+    let reqOptions: AxiosRequestConfig = {
         url: `${serverURL}/a/${path}`,
         method: method,
         headers: {
@@ -46,6 +46,7 @@ export async function bareRequest<Result>(
             "User-Agent": "VSCode Gerrit WorkFlow",
             Authorization: `Basic ${authToken}`,
         },
+        responseType: "json",
     };
 
     const response = await axios.request<string>(reqOptions);
@@ -53,7 +54,7 @@ export async function bareRequest<Result>(
 }
 
 export async function request<Result>(
-    method: string,
+    method: Method,
     path: string
 ): Promise<Result> {
     assert(selectedConnection !== undefined);

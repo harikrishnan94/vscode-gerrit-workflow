@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import normalizeUrl from "normalize-url";
-import { TextDecoder, TextEncoder } from "util";
 import { get, update } from "./dataStore";
 
 export class Credential {
