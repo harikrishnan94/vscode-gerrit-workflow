@@ -2,7 +2,7 @@
     "name": "gerrit-workflow",
     "displayName": "Gerrit Workflow",
     "description": "Gerrit Workflow integration for VSCode",
-    "icon": "icons/Gerrit_icon.png",
+    "icon": "icons/Gerrit.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/harikrishnan94/vscode-gerrit-workflow.git"
