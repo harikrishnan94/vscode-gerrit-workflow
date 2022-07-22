@@ -1,17 +1,14 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { Axios, AxiosError } from "axios";
 import * as vscode from "vscode";
 import {
     addCredential,
     clearCredentials,
     getAllCredentials,
-    setCredentialToUse,
-    validateCredential,
+    GetSelfResponse as SelfResponse,
 } from "./credentialStore";
 import { reportError } from "./errorHandling";
-
-const axios: Axios = require("axios");
+import { bareRequest, setConnection } from "./request";
 
 async function getGerritServerURL(): Promise<string> {
     let serverURL = vscode.workspace
@@ -90,27 +87,14 @@ function registerAddCredentialCommand(context: vscode.ExtensionContext) {
                 const serverUrl = await getGerritServerURL();
                 const username = await getGerritUserName();
                 const password = await getGerritPassword();
-                let authToken = Buffer.from(`${username}:${password}`).toString(
-                    "base64"
-                );
-
-                let reqOptions = {
-                    url: serverUrl + "/a/accounts/self",
-                    method: "GET",
-                    headers: {
-                        Accept: "*/*",
-                        "User-Agent": "VSCode Gerrit WorkFlow",
-                        Authorization: `Basic ${authToken}`,
-                    },
-                };
-
-                const response = await axios.request<string>(reqOptions);
-                await addCredential(
-                    context,
+                const selfResonse = await bareRequest<SelfResponse>(
+                    "GET",
+                    "accounts/self",
                     serverUrl,
-                    JSON.parse(response.data.split("\n")[1]),
+                    username,
                     password
                 );
+                await addCredential(context, serverUrl, selfResonse, password);
                 vscode.window.showInformationMessage("Credential Saved!");
             } catch (error) {
                 reportError("Credentials verification failed", error);
@@ -136,9 +120,7 @@ async function selectCredential(context: vscode.ExtensionContext) {
     if (userPick) {
         console.log(`Credential selected ${userPick.label}`);
 
-        if (await validateCredential(context, userPick.credential)) {
-            setCredentialToUse(userPick.credential);
-        } else {
+        if (!(await setConnection(userPick.credential, context))) {
             vscode.window.showErrorMessage(
                 `Cannot find password for: ${userPick.label}`
             );

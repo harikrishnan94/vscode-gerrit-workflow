@@ -96,26 +96,10 @@ export async function getAllCredentials(
     return await readCredentialsDB(context);
 }
 
-export async function validateCredential(
-    context: vscode.ExtensionContext,
-    credential: Credential
-): Promise<boolean> {
-    let password = await context.secrets.get(credential.passkey);
-    return password != undefined;
-}
-
 export async function clearCredentials(context: vscode.ExtensionContext) {
     let credentials = await readCredentialsDB(context);
     for (let credential in credentials) {
         await context.secrets.delete(credential);
     }
     await fs.delete(getCredentialsDBURI(context));
-}
-
-export function setCredentialToUse(credential: Credential) {
-    inUseCredential = credential;
-}
-
-export function getInUseCredential(): Credential | undefined {
-    return inUseCredential;
 }
