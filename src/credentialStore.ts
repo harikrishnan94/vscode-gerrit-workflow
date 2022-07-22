@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import normalizeUrl from "normalize-url";
 import { TextDecoder, TextEncoder } from "util";
+import { get, update } from "./dataStore";
 
 export class Credential {
     serverURL: string;
@@ -39,32 +40,14 @@ export class GetSelfResponse {
 }
 
 let fs = vscode.workspace.fs;
-let inUseCredential: Credential | undefined = undefined;
-
-function getCredentialsDBURI(context: vscode.ExtensionContext) {
-    return vscode.Uri.joinPath(
-        context.globalStorageUri,
-        "globalCredentials.json"
-    );
-}
+const credentialsKey = "credentials";
 
 async function readCredentialsDB(
     context: vscode.ExtensionContext
 ): Promise<Credential[]> {
-    let credentialsStoreDBPath = getCredentialsDBURI(context);
-    try {
-        let contents = await fs.readFile(credentialsStoreDBPath);
-        return JSON.parse(new TextDecoder().decode(contents));
-    } catch (e) {
-        try {
-            await fs.delete(credentialsStoreDBPath, {
-                recursive: true,
-                useTrash: true,
-            });
-        } catch (e) {}
-
-        return [];
-    }
+    let credentials = get<Credential[]>(context, credentialsKey);
+    if (credentials) return credentials!;
+    return [];
 }
 
 export async function addCredential(
@@ -84,10 +67,7 @@ export async function addCredential(
         credentials.push(credential);
     }
     await context.secrets.store(credential.passkey, password);
-    await fs.writeFile(
-        getCredentialsDBURI(context),
-        new TextEncoder().encode(JSON.stringify(credentials))
-    );
+    await update(context, credentialsKey, credentials);
 }
 
 export async function getAllCredentials(
@@ -97,9 +77,5 @@ export async function getAllCredentials(
 }
 
 export async function clearCredentials(context: vscode.ExtensionContext) {
-    let credentials = await readCredentialsDB(context);
-    for (let credential in credentials) {
-        await context.secrets.delete(credential);
-    }
-    await fs.delete(getCredentialsDBURI(context));
+    await update(context, credentialsKey, []);
 }
