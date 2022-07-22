@@ -9,6 +9,7 @@ import {
     setCredentialToUse,
     validateCredential,
 } from "./credentialStore";
+import { reportError } from "./errorHandling";
 
 const axios: Axios = require("axios");
 
@@ -112,20 +113,7 @@ function registerAddCredentialCommand(context: vscode.ExtensionContext) {
                 );
                 vscode.window.showInformationMessage("Credential Saved!");
             } catch (error) {
-                const reportError = (msg: string) => {
-                    vscode.window.showErrorMessage(
-                        `Credentials verification failed: ${msg}`
-                    );
-                };
-                if (error instanceof AxiosError) {
-                    reportError(
-                        `${error.message}(${error.response?.statusText!})`
-                    );
-                } else if (error instanceof Error) {
-                    reportError(error.message);
-                } else {
-                    reportError(JSON.stringify(error));
-                }
+                reportError("Credentials verification failed", error);
             }
         }
     );
@@ -181,16 +169,7 @@ function registerSelectCredentialCommand(context: vscode.ExtensionContext) {
 
                 await selectCredential(context);
             } catch (error) {
-                const reportError = (msg: string) => {
-                    vscode.window.showErrorMessage(
-                        `Credentials selection failed: ${msg}`
-                    );
-                };
-                if (error instanceof Error) {
-                    reportError(error.message);
-                } else {
-                    reportError(JSON.stringify(error));
-                }
+                reportError("Credentials selection failed", error);
             }
         }
     );
@@ -213,16 +192,7 @@ function registerClearCredentialsCommand(context: vscode.ExtensionContext) {
 
                 await clearCredentials(context);
             } catch (error) {
-                const reportError = (msg: string) => {
-                    vscode.window.showErrorMessage(
-                        `Credentials clearing failed: ${msg}`
-                    );
-                };
-                if (error instanceof Error) {
-                    reportError(error.message);
-                } else {
-                    reportError(JSON.stringify(error));
-                }
+                reportError("Credentials clearing failed", error);
             }
         }
     );
