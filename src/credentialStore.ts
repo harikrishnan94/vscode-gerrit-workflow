@@ -9,9 +9,6 @@ export class Credential {
     // Key to retrieve the password from vscode secrets.
     passkey: string;
 
-    // Used in quick pick
-    label: string;
-
     constructor(serverURL: string, self: GetSelfResponse) {
         this.serverURL = normalizeUrl(serverURL, { sortQueryParameters: true });
         this.username = self.username;
@@ -19,7 +16,6 @@ export class Credential {
         this.passkey = Buffer.from(`${serverURL}:${this.username}`).toString(
             "base64"
         );
-        this.label = `Server: ${this.serverURL}\nUsername: ${this.username}`;
     }
 }
 
@@ -98,6 +94,22 @@ export async function getAllCredentials(
     context: vscode.ExtensionContext
 ): Promise<Credential[]> {
     return await readCredentialsDB(context);
+}
+
+export async function validateCredential(
+    context: vscode.ExtensionContext,
+    credential: Credential
+): Promise<boolean> {
+    let password = await context.secrets.get(credential.passkey);
+    return password != undefined;
+}
+
+export async function clearCredentials(context: vscode.ExtensionContext) {
+    let credentials = await readCredentialsDB(context);
+    for (let credential in credentials) {
+        await context.secrets.delete(credential);
+    }
+    await fs.delete(getCredentialsDBURI(context));
 }
 
 export function setCredentialToUse(credential: Credential) {

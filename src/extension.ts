@@ -4,8 +4,10 @@ import { Axios, AxiosError } from "axios";
 import * as vscode from "vscode";
 import {
     addCredential,
+    clearCredentials,
     getAllCredentials,
     setCredentialToUse,
+    validateCredential,
 } from "./credentialStore";
 
 const axios: Axios = require("axios");
@@ -133,12 +135,26 @@ function registerAddCredentialCommand(context: vscode.ExtensionContext) {
 
 async function selectCredential(context: vscode.ExtensionContext) {
     const credentials = await getAllCredentials(context);
-    const userSelection = await vscode.window.showQuickPick(credentials, {
+    const quickPickItems = credentials.map((cred) => {
+        return {
+            label: `Username: ${cred.username}`,
+            detail: `Server URL: ${cred.serverURL}`,
+            credential: cred,
+        };
+    });
+    const userPick = await vscode.window.showQuickPick(quickPickItems, {
         title: "Select Gerrit Account Information to use",
     });
-    if (userSelection) {
-        console.log(`Credential selected ${userSelection}`);
-        setCredentialToUse(userSelection);
+    if (userPick) {
+        console.log(`Credential selected ${userPick.label}`);
+
+        if (await validateCredential(context, userPick.credential)) {
+            setCredentialToUse(userPick.credential);
+        } else {
+            vscode.window.showErrorMessage(
+                `Cannot find password for: ${userPick.label}`
+            );
+        }
     }
 }
 
@@ -182,6 +198,38 @@ function registerSelectCredentialCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
+function registerClearCredentialsCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.clearCredentials",
+        async () => {
+            try {
+                let userAction = await vscode.window.showWarningMessage(
+                    "Are you sure, that you want to clear all credentials? You can add credentials later.",
+                    "Yes",
+                    "No"
+                );
+
+                if (userAction !== "Yes") return;
+
+                await clearCredentials(context);
+            } catch (error) {
+                const reportError = (msg: string) => {
+                    vscode.window.showErrorMessage(
+                        `Credentials clearing failed: ${msg}`
+                    );
+                };
+                if (error instanceof Error) {
+                    reportError(error.message);
+                } else {
+                    reportError(JSON.stringify(error));
+                }
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -192,6 +240,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
     registerAddCredentialCommand(context);
     registerSelectCredentialCommand(context);
+    registerClearCredentialsCommand(context);
 }
 
 // this method is called when your extension is deactivated

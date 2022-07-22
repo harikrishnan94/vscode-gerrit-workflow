@@ -17,7 +17,8 @@
     ],
     "activationEvents": [
         "onCommand:gerrit-workflow.addCrendential",
-        "onCommand:gerrit-workflow.selectCredential"
+        "onCommand:gerrit-workflow.selectCredential",
+        "onCommand:gerrit-workflow.clearCredentials"
     ],
     "main": "./dist/extension.js",
     "contributes": {
@@ -29,6 +30,10 @@
             {
                 "command": "gerrit-workflow.selectCredential",
                 "title": "Gerrit: Select Credential"
+            },
+            {
+                "command": "gerrit-workflow.clearCredentials",
+                "title": "Gerrit: Clear Stored Credentials"
             }
         ],
         "configuration": [
