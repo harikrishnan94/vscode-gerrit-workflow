@@ -23,6 +23,8 @@ export class ProjectsDataProvider
 {
     private static _instance = new ProjectsDataProvider();
 
+    private currentProject: ProjectTreeItem | undefined;
+
     private data: ProjectTreeItem[] = [];
 
     static instance(): ProjectsDataProvider {
@@ -37,13 +39,38 @@ export class ProjectsDataProvider
             const projects = new Map<string, ProjectInfo>(
                 Object.entries(response)
             );
+            this.data = [];
             projects.forEach((projectInfo, name) => {
-                this.data.push(new ProjectTreeItem(projectInfo, name));
+                if (!projectInfo.name) projectInfo.name = name;
+                let pos = this.data.push(new ProjectTreeItem(projectInfo)) - 1;
+                if (
+                    this.currentProject?.projectInfo.name === projectInfo.name
+                ) {
+                    this.data[pos].markAsCurrent();
+                }
             });
             this._onDidChangeTreeData!.fire();
         } catch (error) {
             reportError("Cannot Load Projects", error);
         }
+    }
+
+    setCurrentProject(project: string): boolean {
+        let pos = this.data.findIndex((p) => p.projectInfo.name == project);
+        if (pos == -1) return false;
+
+        if (this.currentProject) this.currentProject.iconPath = undefined;
+
+        this.currentProject = this.data[pos];
+        this.currentProject.iconPath = new vscode.ThemeIcon(
+            "extensions-star-empty"
+        );
+        this._onDidChangeTreeData!.fire();
+        return true;
+    }
+
+    getCurrentProject(): ProjectInfo | undefined {
+        return this.currentProject?.projectInfo;
     }
 
     private _onDidChangeTreeData: vscode.EventEmitter<
@@ -71,15 +98,23 @@ export class ProjectsDataProvider
 
 class ProjectTreeItem extends vscode.TreeItem {
     projectInfo: ProjectInfo;
-    name: string;
     children = undefined;
 
-    constructor(projectInfo: ProjectInfo, name: string) {
+    constructor(projectInfo: ProjectInfo) {
         // this.children === undefined
         //     ? vscode.TreeItemCollapsibleState.None
         //     : vscode.TreeItemCollapsibleState.Expanded;
-        super(name, vscode.TreeItemCollapsibleState.None);
+        super(projectInfo.name, vscode.TreeItemCollapsibleState.None);
+        this.contextValue = "project";
+        this.command = {
+            title: "Switch to this project",
+            command: "gerrit-workflow.switchProject",
+            arguments: [projectInfo.name],
+        };
         this.projectInfo = projectInfo;
-        this.name = name;
+    }
+
+    markAsCurrent() {
+        this.iconPath = new vscode.ThemeIcon("extensions-star-empty");
     }
 }

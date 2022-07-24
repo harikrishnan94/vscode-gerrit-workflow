@@ -190,6 +190,36 @@ function registerClearCredentialsCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
+function registerRefreshProjectsViewCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.refreshProjectsView",
+        async () => {
+            try {
+                await ProjectsDataProvider.instance().refresh();
+            } catch (error) {
+                reportError("Cannot Refresh Projects", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerSwitchProjectCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.switchProject",
+        async (project: string) => {
+            try {
+                ProjectsDataProvider.instance().setCurrentProject(project);
+            } catch (error) {
+                reportError("Cannot Refresh Projects", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -203,6 +233,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerAddCredentialCommand(context);
     registerSelectCredentialCommand(context);
     registerClearCredentialsCommand(context);
+    registerRefreshProjectsViewCommand(context);
+    registerSwitchProjectCommand(context);
 
     // Register views
     loadWorkspaceDefaultConnection(context).then(async () => {

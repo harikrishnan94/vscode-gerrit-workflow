@@ -35,6 +35,11 @@
             {
                 "command": "gerrit-workflow.clearCredentials",
                 "title": "Gerrit: Clear Stored Credentials"
+            },
+            {
+                "command": "gerrit-workflow.refreshProjectsView",
+                "title": "Refresh",
+                "icon": "$(refresh)"
             }
         ],
         "viewsContainers": {
@@ -51,7 +56,7 @@
                 {
                     "id": "projectsView",
                     "name": "Projects",
-                    "icon": "icons/project.svg",
+                    "icon": "$(project)",
                     "contextualTitle": "Projects Explorer"
                 }
             ]
@@ -62,6 +67,15 @@
                 "contents": "No Gerrit Account information found.\n[Select Gerrit Account](command:gerrit-workflow.selectCredential)"
             }
         ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "gerrit-workflow.refreshProjectsView",
+                    "when": "view == projectsView",
+                    "group": "navigation"
+                }
+            ]
+        },
         "configuration": [
             {
                 "title": "Gerrit Workflow",
