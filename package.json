@@ -38,8 +38,31 @@
             },
             {
                 "command": "gerrit-workflow.refreshProjectsView",
-                "title": "Refresh",
+                "title": "Gerrit: Refresh Projects",
                 "icon": "$(refresh)"
+            },
+            {
+                "command": "gerrit-workflow.refreshChangesView",
+                "title": "Gerrit: Refresh Changes",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "gerrit-workflow.copyChangeLinkToClipboard",
+                "title": "Copy Link to Clipboard",
+                "icon": "$(clippy)"
+            },
+            {
+                "command": "gerrit-workflow.openChangeLinkInBrowser",
+                "title": "Open Link in Browser",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "gerrit-workflow.downloadLatestPatch",
+                "title": "Download Latest Patch"
+            },
+            {
+                "command": "gerrit-workflow.checkoutLatestPatch",
+                "title": "Checkout Latest Patch"
             }
         ],
         "viewsContainers": {
@@ -79,6 +102,38 @@
                     "command": "gerrit-workflow.refreshProjectsView",
                     "when": "view == projectsView",
                     "group": "navigation"
+                },
+                {
+                    "command": "gerrit-workflow.refreshChangesView",
+                    "when": "view == changesView",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "gerrit-workflow.copyChangeLinkToClipboard",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "inline"
+                },
+                {
+                    "command": "gerrit-workflow.copyChangeLinkToClipboard",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "1_changesView_Link"
+                },
+                {
+                    "command": "gerrit-workflow.openChangeLinkInBrowser",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "1_changesView_Link"
+                },
+                {
+                    "command": "gerrit-workflow.downloadLatestPatch",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "1_changesViewPatch"
+                },
+                {
+                    "command": "gerrit-workflow.checkoutLatestPatch",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "1_changesViewPatch"
                 }
             ]
         },

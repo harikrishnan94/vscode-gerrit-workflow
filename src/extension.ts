@@ -211,7 +211,25 @@ function registerSwitchProjectCommand(context: vscode.ExtensionContext) {
         "gerrit-workflow.switchProject",
         async (project: string) => {
             try {
-                ProjectsDataProvider.instance().setCurrentProject(project);
+                if (
+                    ProjectsDataProvider.instance().setCurrentProject(project)
+                ) {
+                    await ChangesDataProvider.instance().refresh();
+                }
+            } catch (error) {
+                reportError("Cannot Refresh Projects", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerRefreshChangesViewCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.refreshChangesView",
+        async () => {
+            try {
                 await ChangesDataProvider.instance().refresh();
             } catch (error) {
                 reportError("Cannot Refresh Projects", error);
@@ -237,6 +255,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerClearCredentialsCommand(context);
     registerRefreshProjectsViewCommand(context);
     registerSwitchProjectCommand(context);
+    registerRefreshChangesViewCommand(context);
 
     // Register views
     loadWorkspaceDefaultConnection(context).then(async () => {

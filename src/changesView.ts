@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { reportError } from "./errorHandling";
+import { ProjectsDataProvider } from "./projectsView";
 import { hasDefaultConnection, request } from "./request";
 
 export class ChangesDataProvider
@@ -14,9 +15,24 @@ export class ChangesDataProvider
     }
 
     async refresh() {
-        this.data.push(new ChangeTreeItem("1001"));
-        this.data.push(new ChangeTreeItem("1002"));
-        this.data.push(new ChangeTreeItem("1003"));
+        let project = ProjectsDataProvider.instance().getCurrentProject();
+        let label = project ? project.name : "Change";
+        this.data = [];
+        this.data.push(
+            new ChangeTreeItem(
+                `${label}${Math.floor(Math.random() * (100 + 1))}`
+            )
+        );
+        this.data.push(
+            new ChangeTreeItem(
+                `${label}${Math.floor(Math.random() * (100 + 1))}`
+            )
+        );
+        this.data.push(
+            new ChangeTreeItem(
+                `${label}${Math.floor(Math.random() * (100 + 1))}`
+            )
+        );
         this._onDidChangeTreeData!.fire();
     }
 
