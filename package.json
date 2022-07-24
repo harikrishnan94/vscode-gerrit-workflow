@@ -58,6 +58,12 @@
                     "name": "Projects",
                     "icon": "$(project)",
                     "contextualTitle": "Projects Explorer"
+                },
+                {
+                    "id": "changesView",
+                    "name": "Changes",
+                    "icon": "$(git-pull-request)",
+                    "contextualTitle": "Changes Explorer"
                 }
             ]
         },

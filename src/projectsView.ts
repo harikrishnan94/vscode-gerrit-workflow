@@ -112,9 +112,20 @@ class ProjectTreeItem extends vscode.TreeItem {
             arguments: [projectInfo.name],
         };
         this.projectInfo = projectInfo;
+        this.description = projectInfo.description;
+        this.tooltip = new vscode.MarkdownString(this.generateToolTip());
     }
 
     markAsCurrent() {
         this.iconPath = new vscode.ThemeIcon("extensions-star-empty");
+    }
+
+    private generateToolTip(): string {
+        let state = `State: **${this.projectInfo.state}**`;
+        let branches = this.projectInfo.branches
+            ? `Branches: ${this.projectInfo.branches.join(", ")}<br>`
+            : "";
+
+        return state + branches;
     }
 }

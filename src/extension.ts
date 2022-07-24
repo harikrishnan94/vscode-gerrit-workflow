@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import { ChangesDataProvider } from "./changesView";
 import {
     addCredential,
     clearCredentials,
@@ -211,6 +212,7 @@ function registerSwitchProjectCommand(context: vscode.ExtensionContext) {
         async (project: string) => {
             try {
                 ProjectsDataProvider.instance().setCurrentProject(project);
+                await ChangesDataProvider.instance().refresh();
             } catch (error) {
                 reportError("Cannot Refresh Projects", error);
             }
@@ -242,7 +244,13 @@ export function activate(context: vscode.ExtensionContext) {
             "projectsView",
             ProjectsDataProvider.instance()
         );
+        vscode.window.registerTreeDataProvider(
+            "changesView",
+            ChangesDataProvider.instance()
+        );
+
         await ProjectsDataProvider.instance().refresh();
+        await ChangesDataProvider.instance().refresh();
     });
 }
 
