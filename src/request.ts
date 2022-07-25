@@ -1,4 +1,4 @@
-import { Axios, Method, AxiosRequestConfig } from "axios";
+import { Axios, Method, AxiosRequestConfig, ResponseType } from "axios";
 import { Credential } from "./credentialStore";
 import * as vscode from "vscode";
 import { assert } from "console";
@@ -63,6 +63,7 @@ export async function bareRequest<Result>(
     username: string,
     password: string,
     path: string,
+    responseType: ResponseType = "json",
     params: any = {}
 ): Promise<Result> {
     assert(method === "GET" || method === "PUT");
@@ -76,17 +77,24 @@ export async function bareRequest<Result>(
             "User-Agent": "VSCode Gerrit WorkFlow",
             Authorization: `Basic ${authToken}`,
         },
-        responseType: "json",
+        responseType,
         params: params,
     };
 
-    const response = await axios.request<string>(reqOptions);
-    return JSON.parse(response.data.split("\n")[1]);
+    if (responseType == "json") {
+        const response = await axios.request<string>(reqOptions);
+        return JSON.parse(response.data.split("\n")[1]);
+    } else {
+        return await (
+            await axios.request<Result>(reqOptions)
+        ).data;
+    }
 }
 
 export async function request<Result>(
     method: Method,
     path: string,
+    responseType: ResponseType = "json",
     params: any = {}
 ): Promise<Result> {
     assert(workspaceDefaultConnection !== undefined);
@@ -98,6 +106,7 @@ export async function request<Result>(
         workspaceDefaultConnection!.credential.username,
         workspaceDefaultConnection!.password,
         path,
+        responseType,
         params
     );
 }

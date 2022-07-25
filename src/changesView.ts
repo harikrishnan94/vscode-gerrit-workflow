@@ -156,9 +156,31 @@ export class PatchSetTreeItem extends TreeItem {
     }
 
     async download() {
-        // TODO: Implement
-        vscode.window.showInformationMessage(
-            `Downloading patch for ${this.revisionID}`
+        const shortRevisionID = this.revisionID.substring(0, 7);
+        const prefixPath = vscode.workspace.workspaceFolders
+            ? vscode.workspace.workspaceFolders[0].uri.fsPath
+            : "~/Downloads";
+        const downloadLocation = await vscode.window.showSaveDialog({
+            saveLabel: `Download patchset for ${this.revisionInfo.commit.subject}`,
+            defaultUri: vscode.Uri.parse(
+                `${prefixPath}/${shortRevisionID}.zip`
+            ),
+        });
+
+        if (!downloadLocation) return;
+
+        const changeID = (this.parent as ChangeTreeItem).changeInfo.id;
+        const revisionID = this.revisionID;
+
+        let patch = await request<ArrayBuffer>(
+            "GET",
+            `changes/${changeID}/revisions/${revisionID}/patch?zip`,
+            "arraybuffer"
+        );
+
+        await vscode.workspace.fs.writeFile(
+            downloadLocation,
+            new Uint8Array(patch)
         );
     }
 

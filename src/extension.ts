@@ -266,7 +266,7 @@ function registerDownloadLatestPatchsetForChangeCommand(
             try {
                 change.downloadLatestPatchset();
             } catch (error) {
-                reportError("", error);
+                reportError("Cannot download patchset", error);
             }
         }
     );
@@ -283,10 +283,7 @@ function registerCheckoutLatestPatchsetForChangeCommand(
             try {
                 await change.checkoutLatestPatchset();
             } catch (error) {
-                reportError(
-                    "Cannot checkout latest patchset for change",
-                    error
-                );
+                reportError("Cannot checkout patchset", error);
             }
         }
     );
@@ -316,7 +313,7 @@ function registerDownloadPatchsetCommand(context: vscode.ExtensionContext) {
             try {
                 await patchset.download();
             } catch (error) {
-                reportError("", error);
+                reportError("Cannot download patchset", error);
             }
         }
     );
@@ -331,7 +328,7 @@ function registerCheckoutPatchsetCommand(context: vscode.ExtensionContext) {
             try {
                 await patchset.checkout();
             } catch (error) {
-                reportError("", error);
+                reportError("Cannot checkout patchset", error);
             }
         }
     );
