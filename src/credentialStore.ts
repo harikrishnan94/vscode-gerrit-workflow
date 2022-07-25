@@ -26,7 +26,6 @@ export interface SelfResponse {
     email: string;
 }
 
-let fs = vscode.workspace.fs;
 const credentialsKey = "credentials";
 
 async function readCredentialsDB(

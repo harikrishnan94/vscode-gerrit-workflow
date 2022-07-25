@@ -19,7 +19,7 @@
         "onCommand:gerrit-workflow.addCrendential",
         "onCommand:gerrit-workflow.selectCredential",
         "onCommand:gerrit-workflow.clearCredentials",
-        "onView:projectsView"
+        "onView:changesView"
     ],
     "main": "./dist/extension.js",
     "contributes": {
@@ -37,11 +37,6 @@
                 "title": "Gerrit: Clear Stored Credentials"
             },
             {
-                "command": "gerrit-workflow.refreshProjectsView",
-                "title": "Gerrit: Refresh Projects",
-                "icon": "$(refresh)"
-            },
-            {
                 "command": "gerrit-workflow.refreshChangesView",
                 "title": "Gerrit: Refresh Changes",
                 "icon": "$(refresh)"
@@ -52,17 +47,41 @@
                 "icon": "$(clippy)"
             },
             {
-                "command": "gerrit-workflow.openChangeLinkInBrowser",
+                "command": "gerrit-workflow.openChangeInBrowser",
                 "title": "Open Link in Browser",
                 "icon": "$(link-external)"
             },
             {
-                "command": "gerrit-workflow.downloadLatestPatch",
+                "command": "gerrit-workflow.downloadLatestPatchsetForChange",
                 "title": "Download Latest Patch"
             },
             {
-                "command": "gerrit-workflow.checkoutLatestPatch",
+                "command": "gerrit-workflow.checkoutLatestPatchsetForChange",
                 "title": "Checkout Latest Patch"
+            },
+            {
+                "command": "gerrit-workflow.downloadLatestPatchset",
+                "title": "Download Latest Patch"
+            },
+            {
+                "command": "gerrit-workflow.checkoutLatestPatchset",
+                "title": "Checkout Latest Patch"
+            },
+            {
+                "command": "gerrit-workflow.downloadPatchset",
+                "title": "Download Patch"
+            },
+            {
+                "command": "gerrit-workflow.checkoutPatchset",
+                "title": "Checkout Patch"
+            },
+            {
+                "command": "gerrit-workflow.copyCommitMessage",
+                "title": "Copy Commit Message"
+            },
+            {
+                "command": "gerrit-workflow.copyCommitSHA",
+                "title": "Copy Commit SHA"
             }
         ],
         "viewsContainers": {
@@ -77,12 +96,6 @@
         "views": {
             "gerrit-change-explorer": [
                 {
-                    "id": "projectsView",
-                    "name": "Projects",
-                    "icon": "$(project)",
-                    "contextualTitle": "Projects Explorer"
-                },
-                {
                     "id": "changesView",
                     "name": "Changes",
                     "icon": "$(git-pull-request)",
@@ -92,17 +105,12 @@
         },
         "viewsWelcome": [
             {
-                "view": "projectsView",
+                "view": "changesView",
                 "contents": "No Gerrit Account information found.\n[Select Gerrit Account](command:gerrit-workflow.selectCredential)"
             }
         ],
         "menus": {
             "view/title": [
-                {
-                    "command": "gerrit-workflow.refreshProjectsView",
-                    "when": "view == projectsView",
-                    "group": "navigation"
-                },
                 {
                     "command": "gerrit-workflow.refreshChangesView",
                     "when": "view == changesView",
@@ -116,24 +124,44 @@
                     "group": "inline"
                 },
                 {
+                    "command": "gerrit-workflow.copyCommitMessage",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change"
+                },
+                {
                     "command": "gerrit-workflow.copyChangeLinkToClipboard",
                     "when": "view == changesView && viewItem == change",
-                    "group": "1_changesView_Link"
+                    "group": "changesView.change.link"
                 },
                 {
-                    "command": "gerrit-workflow.openChangeLinkInBrowser",
+                    "command": "gerrit-workflow.openChangeInBrowser",
                     "when": "view == changesView && viewItem == change",
-                    "group": "1_changesView_Link"
+                    "group": "changesView.change.link"
                 },
                 {
-                    "command": "gerrit-workflow.downloadLatestPatch",
+                    "command": "gerrit-workflow.downloadLatestPatchsetForChange",
                     "when": "view == changesView && viewItem == change",
-                    "group": "1_changesViewPatch"
+                    "group": "changesView.change.patch"
                 },
                 {
-                    "command": "gerrit-workflow.checkoutLatestPatch",
+                    "command": "gerrit-workflow.checkoutLatestPatchsetForChange",
                     "when": "view == changesView && viewItem == change",
-                    "group": "1_changesViewPatch"
+                    "group": "changesView.change.patch"
+                },
+                {
+                    "command": "gerrit-workflow.copyCommitSHA",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset"
+                },
+                {
+                    "command": "gerrit-workflow.downloadPatchset",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset.action"
+                },
+                {
+                    "command": "gerrit-workflow.checkoutPatchset",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset.action"
                 }
             ]
         },
@@ -144,7 +172,7 @@
                     "gerrit-workflow.gerritServerURL": {
                         "type": "string",
                         "default": "",
-                        "description": "URL to you Private/Public Gerrit Server"
+                        "description": "URL to your Private/Public Gerrit Server"
                     }
                 }
             }

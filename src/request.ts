@@ -34,6 +34,16 @@ export function hasDefaultConnection(): boolean {
     return workspaceDefaultConnection !== undefined;
 }
 
+export function getDefaultWorkspaceConnectionURL(): string {
+    assert(hasDefaultConnection());
+    return workspaceDefaultConnection!.credential.serverURL;
+}
+
+export function getUserAccountID(): number {
+    assert(hasDefaultConnection());
+    return workspaceDefaultConnection!.credential.accountid;
+}
+
 export async function setWorspaceDefaultConnection(
     credential: Credential,
     context: vscode.ExtensionContext
@@ -49,10 +59,11 @@ export async function setWorspaceDefaultConnection(
 
 export async function bareRequest<Result>(
     method: Method,
-    path: string,
     serverURL: string,
     username: string,
-    password: string
+    password: string,
+    path: string,
+    params: any = {}
 ): Promise<Result> {
     assert(method === "GET" || method === "PUT");
 
@@ -66,6 +77,7 @@ export async function bareRequest<Result>(
             Authorization: `Basic ${authToken}`,
         },
         responseType: "json",
+        params: params,
     };
 
     const response = await axios.request<string>(reqOptions);
@@ -74,16 +86,18 @@ export async function bareRequest<Result>(
 
 export async function request<Result>(
     method: Method,
-    path: string
+    path: string,
+    params: any = {}
 ): Promise<Result> {
     assert(workspaceDefaultConnection !== undefined);
     assert(method === "GET" || method === "PUT");
 
     return await bareRequest<Result>(
         method,
-        path,
         workspaceDefaultConnection!.credential.serverURL,
         workspaceDefaultConnection!.credential.username,
-        workspaceDefaultConnection!.password
+        workspaceDefaultConnection!.password,
+        path,
+        params
     );
 }

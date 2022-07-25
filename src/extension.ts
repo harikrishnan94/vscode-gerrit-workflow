@@ -9,7 +9,7 @@ import {
     SelfResponse as SelfResponse,
 } from "./credentialStore";
 import { reportError } from "./errorHandling";
-import { ProjectsDataProvider } from "./projectsView";
+import { ChangeTreeItem, PatchSetTreeItem } from "./changesView";
 import {
     bareRequest,
     loadWorkspaceDefaultConnection,
@@ -95,10 +95,10 @@ function registerAddCredentialCommand(context: vscode.ExtensionContext) {
                 const password = await getGerritPassword();
                 const selfResonse = await bareRequest<SelfResponse>(
                     "GET",
-                    "accounts/self",
                     serverUrl,
                     username,
-                    password
+                    password,
+                    "accounts/self"
                 );
                 await addCredential(context, serverUrl, selfResonse, password);
                 vscode.window.showInformationMessage("Credential Saved!");
@@ -133,7 +133,7 @@ async function selectCredential(context: vscode.ExtensionContext) {
                 `Cannot find password for: ${userPick.label}`
             );
         }
-        await ProjectsDataProvider.instance().refresh();
+        await ChangesDataProvider.instance().refresh();
     }
 }
 
@@ -191,40 +191,6 @@ function registerClearCredentialsCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
-function registerRefreshProjectsViewCommand(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand(
-        "gerrit-workflow.refreshProjectsView",
-        async () => {
-            try {
-                await ProjectsDataProvider.instance().refresh();
-            } catch (error) {
-                reportError("Cannot Refresh Projects", error);
-            }
-        }
-    );
-
-    context.subscriptions.push(disposable);
-}
-
-function registerSwitchProjectCommand(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand(
-        "gerrit-workflow.switchProject",
-        async (project: string) => {
-            try {
-                if (
-                    ProjectsDataProvider.instance().setCurrentProject(project)
-                ) {
-                    await ChangesDataProvider.instance().refresh();
-                }
-            } catch (error) {
-                reportError("Cannot Refresh Projects", error);
-            }
-        }
-    );
-
-    context.subscriptions.push(disposable);
-}
-
 function registerRefreshChangesViewCommand(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand(
         "gerrit-workflow.refreshChangesView",
@@ -232,7 +198,140 @@ function registerRefreshChangesViewCommand(context: vscode.ExtensionContext) {
             try {
                 await ChangesDataProvider.instance().refresh();
             } catch (error) {
-                reportError("Cannot Refresh Projects", error);
+                reportError("Cannot Refresh Changes", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerCopyCommitMessage(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.copyCommitMessage",
+        async (change: ChangeTreeItem) => {
+            try {
+                await change.copyCommitMessage();
+            } catch (error) {
+                reportError("Cannot copy change info to clipboard", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerCopyChangeLinkToClipboardCommand(
+    context: vscode.ExtensionContext
+) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.copyChangeLinkToClipboard",
+        async (change: ChangeTreeItem) => {
+            try {
+                await change.copyChangeLinkToClipboard();
+            } catch (error) {
+                reportError("Cannot copy change link to clipboard", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerOpenChangeInBrowserCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.openChangeInBrowser",
+        async (change: ChangeTreeItem) => {
+            try {
+                let success = await change.openChangeInBrowser();
+                if (!success)
+                    vscode.window.showErrorMessage(
+                        "Failed to open change in browser"
+                    );
+            } catch (error) {
+                reportError("Cannot open change in browser", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerDownloadLatestPatchsetForChangeCommand(
+    context: vscode.ExtensionContext
+) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.downloadLatestPatchsetForChange",
+        async (change: ChangeTreeItem) => {
+            try {
+                change.downloadLatestPatchset();
+            } catch (error) {
+                reportError("", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerCheckoutLatestPatchsetForChangeCommand(
+    context: vscode.ExtensionContext
+) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.checkoutLatestPatchsetForChange",
+        async (change: ChangeTreeItem) => {
+            try {
+                await change.checkoutLatestPatchset();
+            } catch (error) {
+                reportError(
+                    "Cannot checkout latest patchset for change",
+                    error
+                );
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerCopyCommitSHA(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.copyCommitSHA",
+        async (patchset: PatchSetTreeItem) => {
+            try {
+                await patchset.copyCommitSHA();
+            } catch (error) {
+                reportError("Cannot copy patchset info to clipboard", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerDownloadPatchsetCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.downloadPatchset",
+        async (patchset: PatchSetTreeItem) => {
+            try {
+                await patchset.download();
+            } catch (error) {
+                reportError("", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerCheckoutPatchsetCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.checkoutPatchset",
+        async (patchset: PatchSetTreeItem) => {
+            try {
+                await patchset.checkout();
+            } catch (error) {
+                reportError("", error);
             }
         }
     );
@@ -253,23 +352,28 @@ export function activate(context: vscode.ExtensionContext) {
     registerAddCredentialCommand(context);
     registerSelectCredentialCommand(context);
     registerClearCredentialsCommand(context);
-    registerRefreshProjectsViewCommand(context);
-    registerSwitchProjectCommand(context);
     registerRefreshChangesViewCommand(context);
+    registerCopyCommitMessage(context);
+    registerCopyChangeLinkToClipboardCommand(context);
+    registerOpenChangeInBrowserCommand(context);
+    registerDownloadLatestPatchsetForChangeCommand(context);
+    registerCheckoutLatestPatchsetForChangeCommand(context);
+    registerCopyCommitSHA(context);
+    registerDownloadPatchsetCommand(context);
+    registerCheckoutPatchsetCommand(context);
 
     // Register views
     loadWorkspaceDefaultConnection(context).then(async () => {
-        vscode.window.registerTreeDataProvider(
-            "projectsView",
-            ProjectsDataProvider.instance()
-        );
         vscode.window.registerTreeDataProvider(
             "changesView",
             ChangesDataProvider.instance()
         );
 
-        await ProjectsDataProvider.instance().refresh();
-        await ChangesDataProvider.instance().refresh();
+        try {
+            await ChangesDataProvider.instance().refresh();
+        } catch (error) {
+            reportError("Cannot refresh changes", error);
+        }
     });
 }
 
