@@ -315,17 +315,32 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
         const path = `changes/?${this.defaultParams}${query}`;
         const changes = await request<ChangeInfo[]>("GET", path);
 
-        return create(changes);
+        return create(
+            changes.flatMap((change) => {
+                return change;
+            })
+        );
     }
 
     private async getChangeToAdd(): Promise<number | undefined> {
-        const changes = await request<ChangeInfo[]>("GET", "changes/");
+        const changes = await request<ChangeInfo[]>(
+            "GET",
+            "changes/?o=CURRENT_REVISION&o=CURRENT_COMMIT"
+        );
         const pickItems = changes.map((change) => {
-            return { label: `${change._number}`, description: change.subject };
+            let message: string =
+                change.revisions[change.current_revision].commit.message;
+            message = message.split("\n").splice(1).join("\n");
+            return {
+                label: `${change._number}`,
+                description: change.subject.trim(),
+                detail: message.trim(),
+            };
         });
         const picked = await vscode.window.showQuickPick(pickItems, {
             title: "Select Change to add as favourite",
             matchOnDescription: true,
+            matchOnDetail: true,
         });
         return parseInt(picked?.label!);
     }

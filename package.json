@@ -99,9 +99,8 @@
             },
             {
                 "command": "gerrit-workflow.clearFavouriteChanges",
-                "title": "Clear Favourite Change",
-                "icon": "$(clear-all)",
-                "enablement": "view == changesView && viewItem == favouriteChanges"
+                "title": "Gerrit: Clear Favourite Changes",
+                "icon": "$(clear-all)"
             }
         ],
         "viewsContainers": {
