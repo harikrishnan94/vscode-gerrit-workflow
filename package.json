@@ -92,6 +92,11 @@
                 "enablement": "view == changesView"
             },
             {
+                "command": "gerrit-workflow.copyRemoteReference",
+                "title": "Copy Remote Reference",
+                "enablement": "view == changesView"
+            },
+            {
                 "command": "gerrit-workflow.addFavouriteChange",
                 "title": "Add Favourite Change",
                 "icon": "$(add)",
@@ -169,6 +174,11 @@
                 },
                 {
                     "command": "gerrit-workflow.copyCommitSHA",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset"
+                },
+                {
+                    "command": "gerrit-workflow.copyRemoteReference",
                     "when": "view == changesView && viewItem == patchset",
                     "group": "changesView.patchset"
                 },

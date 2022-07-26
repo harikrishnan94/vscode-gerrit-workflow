@@ -149,7 +149,7 @@ export class PatchSetTreeItem extends TreeItem {
         parent: ChangeTreeItem
     ) {
         super(
-            vscode.TreeItemCollapsibleState.Collapsed,
+            vscode.TreeItemCollapsibleState.None,
             parent,
             `${revisionNumber}`,
             revisionInfo.description,
@@ -159,6 +159,9 @@ export class PatchSetTreeItem extends TreeItem {
 
         this.revisionNumber = revisionNumber;
         this.revisionID = revisionID;
+        revisionInfo.fetch = Object.entries<FetchInfo>(
+            revisionInfo.fetch as any
+        ) as [FetchProtocol, FetchInfo][];
         this.revisionInfo = revisionInfo;
     }
 
@@ -195,11 +198,25 @@ export class PatchSetTreeItem extends TreeItem {
         );
     }
 
+    async copyRemoteReference() {
+        const remoteRef = this.getRemoteInfo();
+        await vscode.env.clipboard.writeText(remoteRef.join(" "));
+    }
+
     async checkout() {
         // TODO: Implement
         vscode.window.showInformationMessage(
             `Checking out changes for ${this.revisionID}`
         );
+    }
+
+    private getRemoteInfo(): string[] {
+        const ssh = this.revisionInfo.fetch.find((item) => {
+            return item[0] == "ssh";
+        });
+        if (ssh === undefined)
+            throw new Error("Cannot find fetch commands for SSH protocol");
+        return [ssh[1].url, ssh[1].ref];
     }
 
     private static generateTooltip(

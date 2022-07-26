@@ -339,6 +339,20 @@ function registerCheckoutPatchsetCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
+function registerCopyRemoteReferenceCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.copyRemoteReference",
+        async (patchset: PatchSetTreeItem) => {
+            try {
+                await patchset.copyRemoteReference();
+            } catch (error) {
+                reportError("Cannot checkout patchset", error);
+            }
+        }
+    );
+    context.subscriptions.push(disposable);
+}
+
 function registerAddFavouriteChangeCommand(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand(
         "gerrit-workflow.addFavouriteChange",
@@ -397,6 +411,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerCopyCommitSHA(context);
     registerDownloadPatchsetCommand(context);
     registerCheckoutPatchsetCommand(context);
+    registerCopyRemoteReferenceCommand(context);
     registerAddFavouriteChangeCommand(context);
     registerClearFavouriteChangesCommand(context);
 
