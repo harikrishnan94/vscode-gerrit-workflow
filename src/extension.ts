@@ -112,17 +112,20 @@ function registerAddCredentialCommand(context: vscode.ExtensionContext) {
 }
 
 async function selectCredential(context: vscode.ExtensionContext) {
-    const credentials = await getAllCredentials(context);
-    const quickPickItems = credentials.map((cred) => {
-        return {
-            label: `Username: ${cred.username}`,
-            detail: `Server URL: ${cred.serverURL}`,
-            credential: cred,
-        };
-    });
-    const userPick = await vscode.window.showQuickPick(quickPickItems, {
+    const quickPickItems = async (): Promise<any[]> => {
+        const credentials = await getAllCredentials(context);
+        return credentials.map((cred) => {
+            return {
+                label: `Username: ${cred.username}`,
+                detail: `Server URL: ${cred.serverURL}`,
+                credential: cred,
+            };
+        });
+    };
+    const userPick = await vscode.window.showQuickPick(quickPickItems(), {
         title: "Select Gerrit Account Information to use",
     });
+
     if (userPick) {
         let success = await setWorspaceDefaultConnection(
             userPick.credential,

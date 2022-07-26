@@ -222,6 +222,7 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private static _instance = new ChangesDataProvider();
 
     private data: TreeItem[] = [];
+    private context: vscode.ExtensionContext | undefined;
 
     private defaultParams =
         "o=ALL_REVISIONS&o=ALL_COMMITS&o=ALL_FILES&o=DOWNLOAD_COMMANDS&o=REVIEWED&o=WEB_LINKS&o=DETAILED_LABELS";
@@ -237,7 +238,7 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     async refresh(context: vscode.ExtensionContext) {
         this.data = [];
-        await this.loadChanges(context);
+        this.context = context;
         this._onDidChangeTreeData!.fire();
     }
 
@@ -323,21 +324,24 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     private async getChangeToAdd(): Promise<number | undefined> {
-        const changes = await request<ChangeInfo[]>(
-            "GET",
-            "changes/?o=CURRENT_REVISION&o=CURRENT_COMMIT"
-        );
-        const pickItems = changes.map((change) => {
-            let message: string =
-                change.revisions[change.current_revision].commit.message;
-            message = message.split("\n").splice(1).join("\n");
-            return {
-                label: `${change._number}`,
-                description: change.subject.trim(),
-                detail: message.trim(),
-            };
-        });
-        const picked = await vscode.window.showQuickPick(pickItems, {
+        const pickItems = async (): Promise<vscode.QuickPickItem[]> => {
+            const changes = await request<ChangeInfo[]>(
+                "GET",
+                "changes/?o=CURRENT_REVISION&o=CURRENT_COMMIT"
+            );
+            const pickItems = changes.map((change) => {
+                let message: string =
+                    change.revisions[change.current_revision].commit.message;
+                message = message.split("\n").splice(1).join("\n");
+                return {
+                    label: `${change._number}`,
+                    description: change.subject.trim(),
+                    detail: message.trim(),
+                };
+            });
+            return pickItems;
+        };
+        const picked = await vscode.window.showQuickPick(pickItems(), {
             title: "Select Change to add as favourite",
             matchOnDescription: true,
             matchOnDetail: true,
@@ -397,7 +401,9 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
         element?: TreeItem | undefined
     ): vscode.ProviderResult<TreeItem[]> {
         if (element === undefined) {
-            return this.data;
+            return this.loadChanges(this.context!).then(() => {
+                return this.data;
+            });
         }
         return element.children;
     }
