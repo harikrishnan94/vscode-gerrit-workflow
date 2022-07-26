@@ -53,35 +53,43 @@
             },
             {
                 "command": "gerrit-workflow.downloadLatestPatchsetForChange",
-                "title": "Download Latest Patch"
+                "title": "Download Latest Patch",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.checkoutLatestPatchsetForChange",
-                "title": "Checkout Latest Patch"
+                "title": "Checkout Latest Patch",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.downloadLatestPatchset",
-                "title": "Download Latest Patch"
+                "title": "Download Latest Patch",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.checkoutLatestPatchset",
-                "title": "Checkout Latest Patch"
+                "title": "Checkout Latest Patch",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.downloadPatchset",
-                "title": "Download Patch"
+                "title": "Download Patch",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.checkoutPatchset",
-                "title": "Checkout Patch"
+                "title": "Checkout Patch",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.copyCommitMessage",
-                "title": "Copy Commit Message"
+                "title": "Copy Commit Message",
+                "enablement": "view == changesView"
             },
             {
                 "command": "gerrit-workflow.copyCommitSHA",
-                "title": "Copy Commit SHA"
+                "title": "Copy Commit SHA",
+                "enablement": "view == changesView"
             }
         ],
         "viewsContainers": {
