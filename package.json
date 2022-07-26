@@ -52,6 +52,11 @@
                 "icon": "$(link-external)"
             },
             {
+                "command": "gerrit-workflow.compareChangeWith",
+                "title": "Compare With...",
+                "icon": "$(link-external)"
+            },
+            {
                 "command": "gerrit-workflow.downloadLatestPatchsetForChange",
                 "title": "Download Latest Patch",
                 "enablement": "view == changesView"
@@ -79,6 +84,11 @@
             {
                 "command": "gerrit-workflow.checkoutPatchset",
                 "title": "Checkout Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.comparePatchWith",
+                "title": "Compare With...",
                 "enablement": "view == changesView"
             },
             {
@@ -153,6 +163,11 @@
                     "group": "changesView.change"
                 },
                 {
+                    "command": "gerrit-workflow.compareChangeWith",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change"
+                },
+                {
                     "command": "gerrit-workflow.copyChangeLinkToClipboard",
                     "when": "view == changesView && viewItem == change",
                     "group": "changesView.change.link"
@@ -174,6 +189,11 @@
                 },
                 {
                     "command": "gerrit-workflow.copyCommitSHA",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset"
+                },
+                {
+                    "command": "gerrit-workflow.comparePatchWith",
                     "when": "view == changesView && viewItem == patchset",
                     "group": "changesView.patchset"
                 },
@@ -247,5 +267,8 @@
     "dependencies": {
         "axios": "^0.27.2",
         "normalize-url": "^7.0.3"
-    }
+    },
+    "extensionDependencies": [
+        "eamodio.gitlens"
+    ]
 }
