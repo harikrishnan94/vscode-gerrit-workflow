@@ -260,6 +260,21 @@ function registerOpenChangeInBrowserCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
+function registerCompareChangeWithCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.compareChangeWith",
+        async (change: ChangeTreeItem) => {
+            try {
+                await change.compareWith();
+            } catch (error) {
+                reportError("Cannot compare change", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
 function registerDownloadLatestPatchsetForChangeCommand(
     context: vscode.ExtensionContext
 ) {
@@ -302,6 +317,21 @@ function registerCopyCommitSHA(context: vscode.ExtensionContext) {
                 await patchset.copyCommitSHA();
             } catch (error) {
                 reportError("Cannot copy patchset info to clipboard", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerComparePatchWithCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.comparePatchWith",
+        async (patch: PatchSetTreeItem) => {
+            try {
+                await patch.compareWith();
+            } catch (error) {
+                reportError("Cannot compare change", error);
             }
         }
     );
@@ -406,9 +436,11 @@ export function activate(context: vscode.ExtensionContext) {
     registerCopyCommitMessage(context);
     registerCopyChangeLinkToClipboardCommand(context);
     registerOpenChangeInBrowserCommand(context);
+    registerCompareChangeWithCommand(context);
     registerDownloadLatestPatchsetForChangeCommand(context);
     registerCheckoutLatestPatchsetForChangeCommand(context);
     registerCopyCommitSHA(context);
+    registerComparePatchWithCommand(context);
     registerDownloadPatchsetCommand(context);
     registerCheckoutPatchsetCommand(context);
     registerCopyRemoteReferenceCommand(context);

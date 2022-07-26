@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { get, update } from "./dataStore";
+import { GitExtension, Repository } from "./git.api";
 import { getDefaultWorkspaceConnectionURL, request } from "./request";
 
 export class TreeItem extends vscode.TreeItem {
@@ -92,6 +93,10 @@ export class ChangeTreeItem extends TreeItem {
         const currentRevision: RevisionInfo =
             changeInfo.revisions[changeInfo.current_revision];
         await vscode.env.clipboard.writeText(currentRevision.commit.message);
+    }
+
+    async compareWith() {
+        await (this.children[0] as PatchSetTreeItem).compareWith();
     }
 
     async copyChangeLinkToClipboard() {
@@ -203,11 +208,49 @@ export class PatchSetTreeItem extends TreeItem {
         await vscode.env.clipboard.writeText(remoteRef.join(" "));
     }
 
+    async compareWith() {
+        const remote = this.getRemoteInfo();
+        const repo = this.getRepository(remote[0]);
+
+        await repo.fetch({ remote: remote[0], ref: remote[1] });
+
+        const commit = await repo.getCommit("FETCH_HEAD");
+
+        await vscode.commands.executeCommand("gitlens.compareWith", {
+            ref1: commit.hash,
+        });
+    }
+
     async checkout() {
-        // TODO: Implement
         vscode.window.showInformationMessage(
-            `Checking out changes for ${this.revisionID}`
+            `Checkouting patch ${this.revisionID}`
         );
+    }
+
+    private getRepository(remote: string): Repository {
+        const git = vscode.extensions
+            .getExtension<GitExtension>("vscode.git")
+            ?.exports.getAPI(1);
+        if (!git) throw new Error("cannot access git extension");
+
+        if (!vscode.workspace.workspaceFolders)
+            throw new Error("no workspace detected");
+
+        const workspace = vscode.workspace.workspaceFolders.find(
+            (workspace) => {
+                const repo = git.getRepository(workspace.uri);
+                if (!repo) return false;
+
+                const r = repo.state.remotes.find((r) => r.fetchUrl === remote);
+                if (!r) return false;
+
+                return true;
+            }
+        );
+        if (!workspace)
+            throw new Error(`cannot find repository for remote: ${remote}`);
+
+        return git.getRepository(workspace.uri)!;
     }
 
     private getRemoteInfo(): string[] {
