@@ -1,72 +1,251 @@
 {
-	"name": "gerrit-workflow",
-	"displayName": "Gerrit Workflow",
-	"description": "Gerrit Workflow integration for VSCode",
-	"icon": "icons/Gerrit_icon.png",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/harikrishnan94/vscode-gerrit-workflow.git"
-	},
-	"homepage": "https://github.com/harikrishnan94/vscode-gerrit-workflow/blob/main/README.md",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.69.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:gerrit-workflow.enterCrendentials"
-	],
-	"main": "./dist/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "gerrit-workflow.enterCrendentials",
-				"title": "Gerrit: Enter Credentials"
-			}
-		],
-		"configuration": [
-			{
-				"title": "Gerrit Workflow",
-				"properties": {
-					"gerrit-workflow.gerritServerURL": {
-						"type": "string",
-						"default": "",
-						"description": "URL to you Private/Public Gerrit Server"
-					}
-				}
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "yarn run package",
-		"compile": "webpack",
-		"watch": "webpack --watch",
-		"package": "webpack --mode production --devtool hidden-source-map",
-		"compile-tests": "tsc -p . --outDir out",
-		"watch-tests": "tsc -p . -w --outDir out",
-		"pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.2.0",
-		"@types/mocha": "^9.1.1",
-		"@types/node": "16.x",
-		"@types/vscode": "^1.69.0",
-		"@typescript-eslint/eslint-plugin": "^5.30.0",
-		"@typescript-eslint/parser": "^5.30.0",
-		"@vscode/test-electron": "^2.1.5",
-		"eslint": "^8.18.0",
-		"glob": "^8.0.3",
-		"mocha": "^10.0.0",
-		"ts-loader": "^9.3.1",
-		"typescript": "^4.7.4",
-		"webpack": "^5.73.0",
-		"webpack-cli": "^4.10.0"
-	},
-	"dependencies": {
-		"axios": "^0.27.2"
-	}
+    "name": "gerrit-workflow",
+    "displayName": "Gerrit Workflow",
+    "description": "Gerrit Workflow integration for VSCode",
+    "icon": "icons/Gerrit.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/harikrishnan94/vscode-gerrit-workflow.git"
+    },
+    "homepage": "https://github.com/harikrishnan94/vscode-gerrit-workflow/blob/main/README.md",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.69.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:gerrit-workflow.addCrendential",
+        "onCommand:gerrit-workflow.selectCredential",
+        "onCommand:gerrit-workflow.clearCredentials",
+        "onView:changesView"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "gerrit-workflow.addCrendential",
+                "title": "Gerrit: Add Credential"
+            },
+            {
+                "command": "gerrit-workflow.selectCredential",
+                "title": "Gerrit: Select Credential"
+            },
+            {
+                "command": "gerrit-workflow.clearCredentials",
+                "title": "Gerrit: Clear Stored Credentials"
+            },
+            {
+                "command": "gerrit-workflow.refreshChangesView",
+                "title": "Gerrit: Refresh Changes",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "gerrit-workflow.copyChangeLinkToClipboard",
+                "title": "Copy Link to Clipboard",
+                "icon": "$(clippy)"
+            },
+            {
+                "command": "gerrit-workflow.openChangeInBrowser",
+                "title": "Open Link in Browser",
+                "icon": "$(link-external)"
+            },
+            {
+                "command": "gerrit-workflow.downloadLatestPatchsetForChange",
+                "title": "Download Latest Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.checkoutLatestPatchsetForChange",
+                "title": "Checkout Latest Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.downloadLatestPatchset",
+                "title": "Download Latest Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.checkoutLatestPatchset",
+                "title": "Checkout Latest Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.downloadPatchset",
+                "title": "Download Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.checkoutPatchset",
+                "title": "Checkout Patch",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.copyCommitMessage",
+                "title": "Copy Commit Message",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.copyCommitSHA",
+                "title": "Copy Commit SHA",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.copyRemoteReference",
+                "title": "Copy Remote Reference",
+                "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.addFavouriteChange",
+                "title": "Add Favourite Change",
+                "icon": "$(add)",
+                "enablement": "view == changesView && viewItem == favouriteChanges"
+            },
+            {
+                "command": "gerrit-workflow.clearFavouriteChanges",
+                "title": "Gerrit: Clear Favourite Changes",
+                "icon": "$(clear-all)"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "gerrit-change-explorer",
+                    "title": "Gerrit Change Explorer",
+                    "icon": "icons/Gerrit.svg"
+                }
+            ]
+        },
+        "views": {
+            "gerrit-change-explorer": [
+                {
+                    "id": "changesView",
+                    "name": "Changes",
+                    "icon": "$(git-pull-request)",
+                    "contextualTitle": "Changes Explorer"
+                }
+            ]
+        },
+        "viewsWelcome": [
+            {
+                "view": "changesView",
+                "contents": "No Gerrit Account information found.\n[Select Gerrit Account](command:gerrit-workflow.selectCredential)"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "gerrit-workflow.refreshChangesView",
+                    "when": "view == changesView",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "gerrit-workflow.copyChangeLinkToClipboard",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "inline"
+                },
+                {
+                    "command": "gerrit-workflow.copyCommitMessage",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change"
+                },
+                {
+                    "command": "gerrit-workflow.copyChangeLinkToClipboard",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change.link"
+                },
+                {
+                    "command": "gerrit-workflow.openChangeInBrowser",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change.link"
+                },
+                {
+                    "command": "gerrit-workflow.downloadLatestPatchsetForChange",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change.patch"
+                },
+                {
+                    "command": "gerrit-workflow.checkoutLatestPatchsetForChange",
+                    "when": "view == changesView && viewItem == change",
+                    "group": "changesView.change.patch"
+                },
+                {
+                    "command": "gerrit-workflow.copyCommitSHA",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset"
+                },
+                {
+                    "command": "gerrit-workflow.copyRemoteReference",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset"
+                },
+                {
+                    "command": "gerrit-workflow.downloadPatchset",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset.action"
+                },
+                {
+                    "command": "gerrit-workflow.checkoutPatchset",
+                    "when": "view == changesView && viewItem == patchset",
+                    "group": "changesView.patchset.action"
+                },
+                {
+                    "command": "gerrit-workflow.addFavouriteChange",
+                    "when": "view == changesView && viewItem == favouriteChanges",
+                    "group": "inline"
+                },
+                {
+                    "command": "gerrit-workflow.clearFavouriteChanges",
+                    "when": "view == changesView && viewItem == favouriteChanges",
+                    "group": "inline"
+                }
+            ]
+        },
+        "configuration": [
+            {
+                "title": "Gerrit Workflow",
+                "properties": {
+                    "gerrit-workflow.gerritServerURL": {
+                        "type": "string",
+                        "default": "",
+                        "description": "URL to your Private/Public Gerrit Server"
+                    }
+                }
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "yarn run package",
+        "compile": "webpack",
+        "watch": "webpack --watch",
+        "package": "webpack --mode production --devtool hidden-source-map",
+        "compile-tests": "tsc -p . --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
+        "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.2.0",
+        "@types/mocha": "^9.1.1",
+        "@types/node": "16.x",
+        "@types/vscode": "^1.69.0",
+        "@typescript-eslint/eslint-plugin": "^5.30.0",
+        "@typescript-eslint/parser": "^5.30.0",
+        "@vscode/test-electron": "^2.1.5",
+        "eslint": "^8.18.0",
+        "glob": "^8.0.3",
+        "mocha": "^10.0.0",
+        "ts-loader": "^9.3.1",
+        "typescript": "^4.7.4",
+        "webpack": "^5.73.0",
+        "webpack-cli": "^4.10.0"
+    },
+    "dependencies": {
+        "axios": "^0.27.2",
+        "normalize-url": "^7.0.3"
+    }
 }
