@@ -133,7 +133,7 @@ async function selectCredential(context: vscode.ExtensionContext) {
                 `Cannot find password for: ${userPick.label}`
             );
         }
-        await ChangesDataProvider.instance().refresh();
+        await ChangesDataProvider.instance().refresh(context);
     }
 }
 
@@ -196,7 +196,7 @@ function registerRefreshChangesViewCommand(context: vscode.ExtensionContext) {
         "gerrit-workflow.refreshChangesView",
         async () => {
             try {
-                await ChangesDataProvider.instance().refresh();
+                await ChangesDataProvider.instance().refresh(context);
             } catch (error) {
                 reportError("Cannot Refresh Changes", error);
             }
@@ -336,6 +336,42 @@ function registerCheckoutPatchsetCommand(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
+function registerAddFavouriteChangeCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.addFavouriteChange",
+        async () => {
+            try {
+                await ChangesDataProvider.instance().addFavouriteChange(
+                    context
+                );
+            } catch (error) {
+                reportError("Cannot add change to favourites", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerClearFavouriteChangesCommand(
+    context: vscode.ExtensionContext
+) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.clearFavouriteChanges",
+        async () => {
+            try {
+                await ChangesDataProvider.instance().clearFavouriteChanges(
+                    context
+                );
+            } catch (error) {
+                reportError("Cannot clear favourites", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -358,6 +394,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerCopyCommitSHA(context);
     registerDownloadPatchsetCommand(context);
     registerCheckoutPatchsetCommand(context);
+    registerAddFavouriteChangeCommand(context);
+    registerClearFavouriteChangesCommand(context);
 
     // Register views
     loadWorkspaceDefaultConnection(context).then(async () => {
@@ -367,7 +405,7 @@ export function activate(context: vscode.ExtensionContext) {
         );
 
         try {
-            await ChangesDataProvider.instance().refresh();
+            await ChangesDataProvider.instance().refresh(context);
         } catch (error) {
             reportError("Cannot refresh changes", error);
         }

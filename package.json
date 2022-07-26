@@ -90,6 +90,18 @@
                 "command": "gerrit-workflow.copyCommitSHA",
                 "title": "Copy Commit SHA",
                 "enablement": "view == changesView"
+            },
+            {
+                "command": "gerrit-workflow.addFavouriteChange",
+                "title": "Add Favourite Change",
+                "icon": "$(add)",
+                "enablement": "view == changesView && viewItem == favouriteChanges"
+            },
+            {
+                "command": "gerrit-workflow.clearFavouriteChanges",
+                "title": "Clear Favourite Change",
+                "icon": "$(clear-all)",
+                "enablement": "view == changesView && viewItem == favouriteChanges"
             }
         ],
         "viewsContainers": {
@@ -170,6 +182,16 @@
                     "command": "gerrit-workflow.checkoutPatchset",
                     "when": "view == changesView && viewItem == patchset",
                     "group": "changesView.patchset.action"
+                },
+                {
+                    "command": "gerrit-workflow.addFavouriteChange",
+                    "when": "view == changesView && viewItem == favouriteChanges",
+                    "group": "inline"
+                },
+                {
+                    "command": "gerrit-workflow.clearFavouriteChanges",
+                    "when": "view == changesView && viewItem == favouriteChanges",
+                    "group": "inline"
                 }
             ]
         },

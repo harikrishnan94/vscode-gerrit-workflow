@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { get, update } from "./dataStore";
 import { getDefaultWorkspaceConnectionURL, request } from "./request";
 
 export class TreeItem extends vscode.TreeItem {
@@ -22,14 +23,18 @@ export class TreeItem extends vscode.TreeItem {
 }
 
 export class ChangeCategoryTreeItem extends TreeItem {
-    constructor(label: string, changes: ChangeInfo[]) {
+    constructor(
+        label: string,
+        changes: ChangeInfo[],
+        context: string = "changeCategory"
+    ) {
         super(
             vscode.TreeItemCollapsibleState.Expanded,
             undefined,
             label,
             "",
             new vscode.MarkdownString(),
-            "changeCategory"
+            context
         );
 
         this.populateChildren(changes);
@@ -39,6 +44,10 @@ export class ChangeCategoryTreeItem extends TreeItem {
         for (let change of changes) {
             this.children.push(new ChangeTreeItem(change, this));
         }
+    }
+
+    add(change: ChangeInfo) {
+        this.children.push(new ChangeTreeItem(change, this));
     }
 }
 
@@ -117,7 +126,9 @@ export class ChangeTreeItem extends TreeItem {
         const topic = `Topic: **${changeInfo.topic}**\n\n`;
         const branch = `Branch: **${changeInfo.branch}**\n\n`;
         const project = `Project: **${changeInfo.project}**\n\n`;
-        const created = `Created at: **${changeInfo.created}**\n\n`;
+        const created = `Created at: **${new Date(
+            Date.parse(`${changeInfo.created} GMT`)
+        ).toLocaleString()}**\n\n`;
         const commitMessage = `${currentRevision.commit.message}\n\n`;
 
         return new vscode.MarkdownString(
@@ -195,7 +206,9 @@ export class PatchSetTreeItem extends TreeItem {
         revisionID: string,
         revisionInfo: RevisionInfo
     ): vscode.MarkdownString {
-        const createdAt = `Created at **${revisionInfo.created}**\n\n`;
+        const createdAt = `Created at **${new Date(
+            Date.parse(`${revisionInfo.created} GMT`)
+        ).toLocaleString()}**\n\n`;
         const commitInfo = `Commit SHA: **${revisionID}**\n\n`;
         const commitMessage = `${revisionInfo.commit.message}**\n\n`;
 
@@ -222,13 +235,13 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
         return this._instance;
     }
 
-    async refresh() {
+    async refresh(context: vscode.ExtensionContext) {
         this.data = [];
-        await this.loadChanges();
+        await this.loadChanges(context);
         this._onDidChangeTreeData!.fire();
     }
 
-    private async loadChanges() {
+    private async loadChanges(context: vscode.ExtensionContext) {
         const yourTurn = await this.createCategoryTree(
             "Your Turn",
             this.yourTurnViewQuery
@@ -245,14 +258,112 @@ export class ChangesDataProvider implements vscode.TreeDataProvider<TreeItem> {
             "CCed On",
             this.ccedOnQuery
         );
+        const favouriteChanges = await this.createFavouriteChangesCategoryTree(
+            context
+        );
 
-        this.data.push(yourTurn, outgoingReviews, incomingReviews, ccedOn);
+        this.data.push(
+            yourTurn,
+            outgoingReviews,
+            incomingReviews,
+            ccedOn,
+            favouriteChanges
+        );
+    }
+
+    private favouriteChangesKey = "favouriteChanges";
+
+    async addFavouriteChange(context: vscode.ExtensionContext) {
+        let favouriteChanges = this.getFavouriteChanges(context);
+        const changeNumber = await this.getChangeToAdd();
+        if (!changeNumber) return;
+
+        favouriteChanges.add(changeNumber);
+        await this.updateFavouriteChanges(context, favouriteChanges);
+        await this.refresh(context);
+    }
+
+    async clearFavouriteChanges(context: vscode.ExtensionContext) {
+        await this.updateFavouriteChanges(context, new Set<number>());
+        await this.refresh(context);
     }
 
     private async createCategoryTree(name: string, query: string) {
         const path = `changes/?${this.defaultParams}&q=${query}`;
         const changes = await request<ChangeInfo[]>("GET", path);
         return new ChangeCategoryTreeItem(name, changes);
+    }
+
+    private async createFavouriteChangesCategoryTree(
+        context: vscode.ExtensionContext
+    ) {
+        const create = (changes: ChangeInfo[]) => {
+            return new ChangeCategoryTreeItem(
+                "Favourites",
+                changes,
+                "favouriteChanges"
+            );
+        };
+        let favouriteChanges = this.getFavouriteChanges(context);
+        if (favouriteChanges.size == 0) return create([]);
+
+        let query = "";
+        favouriteChanges.forEach((changeNumber) => {
+            query += `&q=change:${changeNumber}`;
+        });
+
+        const path = `changes/?${this.defaultParams}${query}`;
+        const changes = await request<ChangeInfo[]>("GET", path);
+
+        return create(changes);
+    }
+
+    private async getChangeToAdd(): Promise<number | undefined> {
+        const changes = await request<ChangeInfo[]>("GET", "changes/");
+        const pickItems = changes.map((change) => {
+            return { label: `${change._number}`, description: change.subject };
+        });
+        const picked = await vscode.window.showQuickPick(pickItems, {
+            title: "Select Change to add as favourite",
+            matchOnDescription: true,
+        });
+        return parseInt(picked?.label!);
+    }
+
+    private getFavouriteChanges(context: vscode.ExtensionContext): Set<number> {
+        const favouriteChanges = get<string>(
+            this.favouriteChangesKey,
+            context,
+            "InWorkspace"
+        );
+        if (favouriteChanges === undefined || favouriteChanges == "")
+            return new Set<number>();
+
+        return new Set<number>(
+            favouriteChanges.split(",").map((number) => parseInt(number))
+        );
+    }
+
+    private async updateFavouriteChanges(
+        context: vscode.ExtensionContext,
+        favourites: Set<number>
+    ) {
+        if (favourites.size == 0) {
+            await update<string>(
+                this.favouriteChangesKey,
+                "",
+                context,
+                "InWorkspace"
+            );
+        }
+        const favouriteChanges = Array.from(favourites.keys()).join(",");
+
+        await update<string>(
+            this.favouriteChangesKey,
+            favouriteChanges,
+            context,
+            "InWorkspace"
+        );
     }
 
     private _onDidChangeTreeData: vscode.EventEmitter<
