@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import { get, update } from "./dataStore";
 import { GitExtension, Repository } from "./git.api";
 import { getDefaultWorkspaceConnectionURL, request } from "./request";
-import { spawn } from "child_process";
 
 export class TreeItem extends vscode.TreeItem {
     parent: TreeItem | undefined;
