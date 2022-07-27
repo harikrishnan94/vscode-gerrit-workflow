@@ -81,6 +81,8 @@ export async function bareRequest<Result>(
         params: params,
     };
 
+    console.log("Executing Request: ", reqOptions);
+
     if (responseType == "json") {
         const response = await axios.request<string>(reqOptions);
         return JSON.parse(response.data.split("\n")[1]);
