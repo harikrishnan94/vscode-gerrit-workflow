@@ -15,11 +15,10 @@ import {
     loadWorkspaceDefaultConnection,
     setWorspaceDefaultConnection,
 } from "./request";
+import { getReviewConfig, startReview, amendChange } from "./review";
 
 async function getGerritServerURL(): Promise<string> {
-    let serverURL = vscode.workspace
-        .getConfiguration("gerrit-workflow")
-        .get<string | undefined>("gerritServerURL");
+    let serverURL = getReviewConfig()?.serverurl;
     const isValidURL = (str: string) => {
         try {
             const url = new URL(str);
@@ -419,6 +418,36 @@ function registerClearFavouriteChangesCommand(
     context.subscriptions.push(disposable);
 }
 
+function registerSubmitNewChangeCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.submitNewChange",
+        async () => {
+            try {
+                await startReview();
+            } catch (error) {
+                reportError("Cannot submit new change", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
+function registerAmendChangeCommand(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand(
+        "gerrit-workflow.amendChange",
+        async () => {
+            try {
+                await amendChange();
+            } catch (error) {
+                reportError("Cannot amend change", error);
+            }
+        }
+    );
+
+    context.subscriptions.push(disposable);
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -446,6 +475,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerCopyRemoteReferenceCommand(context);
     registerAddFavouriteChangeCommand(context);
     registerClearFavouriteChangesCommand(context);
+    registerSubmitNewChangeCommand(context);
+    registerAmendChangeCommand(context);
 
     // Register views
     loadWorkspaceDefaultConnection(context).then(async () => {
