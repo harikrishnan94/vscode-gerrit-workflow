@@ -65,6 +65,14 @@ function secureClone(obj: AxiosRequestConfig): AxiosRequestConfig {
     return clone;
 }
 
+function getHttpsRejectUnauthorized(): boolean {
+    const rejectUnauthorized = vscode.workspace
+        .getConfiguration("gerrit-workflow")
+        .get<boolean>("httpsRejectUnauthorized");
+
+    return rejectUnauthorized === undefined ? true : rejectUnauthorized;
+}
+
 export async function bareRequest<Result>(
     method: Method,
     serverURL: string,
@@ -76,8 +84,9 @@ export async function bareRequest<Result>(
 ): Promise<Result> {
     assert(method === "GET" || method === "PUT");
 
-    let authToken = Buffer.from(`${username}:${password}`).toString("base64");
-    let reqOptions: AxiosRequestConfig = {
+    const https = require("https");
+    const authToken = Buffer.from(`${username}:${password}`).toString("base64");
+    const reqOptions: AxiosRequestConfig = {
         url: `${serverURL}/a/${path}`,
         method: method,
         headers: {
@@ -87,6 +96,9 @@ export async function bareRequest<Result>(
         },
         responseType,
         params: params,
+        httpsAgent: new https.Agent({
+            rejectUnauthorized: getHttpsRejectUnauthorized(),
+        }),
     };
 
     getOutputChannel().appendLine(

@@ -248,6 +248,11 @@
                         "type": "object",
                         "default": "",
                         "description": "Gerrit Review Configuration (contains URL(serverurl), Username (username), Project (defaultbranch), Branch (defaultbranch) and Remote(defaultremote))"
+                    },
+                    "gerrit-workflow.httpsRejectUnauthorized": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Reject Unauthorized certificates when makeing HTTPS call. If unsure, leave set to true."
                     }
                 }
             }
