@@ -8,7 +8,7 @@ import {
     getAllCredentials,
     SelfResponse as SelfResponse,
 } from "./credentialStore";
-import { reportError } from "./errorHandling";
+import { getOutputChannel, reportError } from "./errorHandling";
 import { ChangeTreeItem, PatchSetTreeItem } from "./changesView";
 import {
     bareRequest,
@@ -451,12 +451,6 @@ function registerAmendChangeCommand(context: vscode.ExtensionContext) {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log(
-        'Congratulations, your extension "gerrit-workflow" is now active!'
-    );
-
     // Register Commands
     registerAddCredentialCommand(context);
     registerSelectCredentialCommand(context);
@@ -491,6 +485,8 @@ export function activate(context: vscode.ExtensionContext) {
             reportError("Cannot refresh changes", error);
         }
     });
+
+    context.subscriptions.push(getOutputChannel());
 }
 
 // this method is called when your extension is deactivated

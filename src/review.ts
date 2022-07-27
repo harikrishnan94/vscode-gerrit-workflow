@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { spawnSync } from "child_process";
 import { API, GitExtension, Repository } from "./git.api";
+import { getOutputChannel } from "./errorHandling";
 
 export interface GerritReviewConfig {
     serverurl: string;
@@ -80,21 +81,23 @@ export async function chooseGitRepository(
     const uri = await chooseGitRepositoryUri(operationName);
     if (!uri) return undefined;
 
-    console.log(`Using '${uri.toString()}' for ${operationName}`);
+    getOutputChannel().appendLine(
+        `Using '${uri.toString()}' for ${operationName}\n`
+    );
     return gitExtension().getRepository(uri)!;
 }
 
 function runGitCommand(cwd: vscode.Uri, args: ReadonlyArray<string>) {
     const command = gitExtension().git.path;
 
-    console.log(`Executing ${command} ${args.join(" ")}`);
+    getOutputChannel().appendLine(`Executing ${command} ${args.join(" ")}\n`);
     const child = spawnSync(command, args, {
         cwd: cwd.fsPath,
         encoding: "utf8",
     });
 
-    console.log("StdOut:\n", child.stdout);
-    console.log("StdErr:\n", child.stderr);
+    getOutputChannel().appendLine(`StdOut:\n${child.stdout}\n`);
+    getOutputChannel().appendLine(`StdErr:\n${child.stderr}\n`);
 
     if (child.status != 0) throw new Error(child.stderr.trim());
 
