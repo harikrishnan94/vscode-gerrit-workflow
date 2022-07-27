@@ -80,36 +80,36 @@ export async function chooseGitRepository(
     const uri = await chooseGitRepositoryUri(operationName);
     if (!uri) return undefined;
 
+    console.log(`Using '${uri.toString()}' for ${operationName}`);
     return gitExtension().getRepository(uri)!;
 }
 
-function push(cwd: vscode.Uri, remote: string, branch: string, topic?: string) {
+function runGitCommand(cwd: vscode.Uri, args: ReadonlyArray<string>) {
     const command = gitExtension().git.path;
-    let ref = `HEAD:refs/for/${branch}`;
-    if (topic) ref = `${ref}%topic=${topic}`;
 
-    const child = spawnSync(
-        command,
-        ["push", "--no-follow-tags", remote, ref],
-        {
-            cwd: cwd.fsPath,
-            encoding: "utf8",
-        }
-    );
-
-    if (child.status != 0) throw new Error(child.stderr.trim());
-}
-
-function getWorkingBranchName(cwd: vscode.Uri): string {
-    const command = gitExtension().git.path;
-    const child = spawnSync(command, ["rev-parse", "--abbrev-ref", "HEAD"], {
+    console.log(`Executing ${command} ${args.join(" ")}`);
+    const child = spawnSync(command, args, {
         cwd: cwd.fsPath,
         encoding: "utf8",
     });
 
+    console.log("StdOut:\n", child.stdout);
+    console.log("StdErr:\n", child.stderr);
+
     if (child.status != 0) throw new Error(child.stderr.trim());
 
     return child.stdout.trim();
+}
+
+function push(cwd: vscode.Uri, remote: string, branch: string, topic?: string) {
+    let ref = `HEAD:refs/for/${branch}`;
+    if (topic) ref = `${ref}%topic=${topic}`;
+
+    runGitCommand(cwd, ["push", "--no-follow-tags", remote, ref]);
+}
+
+function getWorkingBranchName(cwd: vscode.Uri): string {
+    return runGitCommand(cwd, ["rev-parse", "--abbrev-ref", "HEAD"]);
 }
 
 async function getTopic(workingBranch: string) {
