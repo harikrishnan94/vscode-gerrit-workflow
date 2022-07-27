@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { get, update } from "./dataStore";
 import { GitExtension, Repository } from "./git.api";
 import { getDefaultWorkspaceConnectionURL, request } from "./request";
+import { spawn } from "child_process";
 
 export class TreeItem extends vscode.TreeItem {
     parent: TreeItem | undefined;
@@ -114,7 +115,7 @@ export class ChangeTreeItem extends TreeItem {
     }
 
     async checkoutLatestPatchset() {
-        await (this.children[0] as PatchSetTreeItem).checkout();
+        await (this.children[0] as PatchSetTreeItem).checkout(true);
     }
 
     private getChangeLink(): string {
@@ -221,10 +222,29 @@ export class PatchSetTreeItem extends TreeItem {
         });
     }
 
-    async checkout() {
-        vscode.window.showInformationMessage(
-            `Checkouting patch ${this.revisionID}`
-        );
+    async checkout(forReview: boolean = false) {
+        const remote = this.getRemoteInfo();
+        const changeInfo = (this.parent as ChangeTreeItem).changeInfo;
+        const repo = this.getRepository(remote[0]);
+
+        await repo.fetch({ remote: remote[0], ref: remote[1] });
+
+        const branchNamePrefix = "review";
+        const changeNumber = changeInfo._number;
+        const revisionNumber = this.revisionNumber;
+
+        try {
+            const suffix = changeInfo.topic
+                ? changeInfo.topic
+                : `${changeNumber}`;
+            let reviewBranchName = `${branchNamePrefix}/${suffix}`;
+            if (!forReview)
+                reviewBranchName = `${reviewBranchName}/${revisionNumber}`;
+
+            await repo.createBranch(reviewBranchName, true, "FETCH_HEAD");
+        } catch (error: any) {
+            throw new Error(error.stderr);
+        }
     }
 
     private getRepository(remote: string): Repository {
