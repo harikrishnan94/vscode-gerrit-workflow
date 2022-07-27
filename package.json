@@ -232,6 +232,11 @@
                         "type": "string",
                         "default": "",
                         "description": "URL to your Private/Public Gerrit Server"
+                    },
+                    "gerrit-workflow.reviewBranchNamePrefix": {
+                        "type": "string",
+                        "default": "review/",
+                        "description": "Prefix to use for names of review branches"
                     }
                 }
             }
