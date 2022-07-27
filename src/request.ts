@@ -3,6 +3,7 @@ import { Credential } from "./credentialStore";
 import * as vscode from "vscode";
 import { assert } from "console";
 import { get, update } from "./dataStore";
+import { getOutputChannel } from "./errorHandling";
 
 const axios: Axios = require("axios");
 
@@ -88,7 +89,9 @@ export async function bareRequest<Result>(
         params: params,
     };
 
-    console.log("Executing Request: ", secureClone(reqOptions));
+    getOutputChannel().appendLine(
+        `Executing Request: ${JSON.stringify(secureClone(reqOptions))}\n`
+    );
 
     if (responseType == "json") {
         const response = await axios.request<string>(reqOptions);
