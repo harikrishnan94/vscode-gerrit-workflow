@@ -57,6 +57,13 @@ export async function setWorspaceDefaultConnection(
     return true;
 }
 
+function secureClone(obj: AxiosRequestConfig): AxiosRequestConfig {
+    let clone: AxiosRequestConfig = JSON.parse(JSON.stringify(obj));
+
+    if (clone.headers) clone.headers.Authorization = "***";
+    return clone;
+}
+
 export async function bareRequest<Result>(
     method: Method,
     serverURL: string,
@@ -81,7 +88,7 @@ export async function bareRequest<Result>(
         params: params,
     };
 
-    console.log("Executing Request: ", reqOptions);
+    console.log("Executing Request: ", secureClone(reqOptions));
 
     if (responseType == "json") {
         const response = await axios.request<string>(reqOptions);
