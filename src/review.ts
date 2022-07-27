@@ -16,12 +16,17 @@ export function getReviewConfig(): GerritReviewConfig | undefined {
         .get<GerritReviewConfig>("gerritReviewConfig");
 }
 
+let git: API | undefined;
+
 export function gitExtension(): API {
-    const git = vscode.extensions
+    if (git) return git;
+
+    const ext = vscode.extensions
         .getExtension<GitExtension>("vscode.git")
         ?.exports.getAPI(1);
-    if (!git) throw new Error("cannot access git extension");
+    if (!ext) throw new Error("cannot access git extension");
 
+    git = ext;
     return git;
 }
 
@@ -31,13 +36,12 @@ async function chooseGitRepositoryUri(
     let remote = getReviewConfig()?.defaultremote;
     remote = remote ? remote : defaultremote;
 
-    const git = gitExtension();
     const hasRemote = (workspaceFolder: vscode.WorkspaceFolder) => {
-        const repo = git.getRepository(workspaceFolder.uri);
+        const repo = gitExtension().getRepository(workspaceFolder.uri);
         if (repo) {
-            if (repo.state.remotes.find((r) => r.name == remote)) return repo;
+            if (repo.state.remotes.find((r) => r.name == remote)) return true;
         }
-        return undefined;
+        return false;
     };
 
     if (vscode.window.activeTextEditor) {
@@ -81,7 +85,7 @@ export async function chooseGitRepository(
 }
 
 function push(cwd: vscode.Uri, remote: string, branch: string, topic?: string) {
-    const command = "git";
+    const command = gitExtension().git.path;
     let ref = `HEAD:refs/for/${branch}`;
     if (topic) ref = `${ref}%topic=${topic}`;
 
@@ -98,7 +102,7 @@ function push(cwd: vscode.Uri, remote: string, branch: string, topic?: string) {
 }
 
 function getWorkingBranchName(cwd: vscode.Uri): string {
-    const command = "git";
+    const command = gitExtension().git.path;
     const child = spawnSync(command, ["rev-parse", "--abbrev-ref", "HEAD"], {
         cwd: cwd.fsPath,
         encoding: "utf8",
