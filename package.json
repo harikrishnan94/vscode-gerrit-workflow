@@ -3,7 +3,7 @@
     "displayName": "Gerrit Workflow",
     "description": "Gerrit Workflow integration for VSCode",
     "icon": "icons/Gerrit.png",
-    "publisher": "Harikrishnan",
+    "publisher": "harikrishnan94",
     "author": {
         "name": "Harikrishnan Prabakaran",
         "email": "harikrishnan.prabakaran@gmail.com"
