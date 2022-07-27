@@ -7,11 +7,11 @@ Gerrit Workflow integration for VSCode.
 -   Display Gerrit dashboard in Gerrit
 -   Git Review Features
     -   Create new change
+    -   Submit and amend changes
     -   Checkout a patchset into a new branch
 
 ## Extension Settings
 
 This extension contributes the following settings:
 
--   `gerrit-workflow.gerritServerURL`: Default Gerrit Server URL to use
--   `gerrit-workflow.reviewBranchNamePrefix`: Prefix to use for names of review branches
+-   `gerrit-workflow.gerritReviewConfig`: Gerrit Review Configuration (contains URL, Username, Project and Branch)

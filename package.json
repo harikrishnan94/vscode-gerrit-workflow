@@ -19,6 +19,9 @@
         "onCommand:gerrit-workflow.addCrendential",
         "onCommand:gerrit-workflow.selectCredential",
         "onCommand:gerrit-workflow.clearCredentials",
+        "onCommand:gerrit-workflow.clearFavouriteChanges",
+        "onCommand:gerrit-workflow.submitNewChange",
+        "onCommand:gerrit-workflow.amendChange",
         "onView:changesView"
     ],
     "main": "./dist/extension.js",
@@ -116,6 +119,14 @@
                 "command": "gerrit-workflow.clearFavouriteChanges",
                 "title": "Gerrit: Clear Favourite Changes",
                 "icon": "$(clear-all)"
+            },
+            {
+                "command": "gerrit-workflow.submitNewChange",
+                "title": "Gerrit: Submit new change"
+            },
+            {
+                "command": "gerrit-workflow.amendChange",
+                "title": "Gerrit: Amend change"
             }
         ],
         "viewsContainers": {
@@ -228,15 +239,10 @@
             {
                 "title": "Gerrit Workflow",
                 "properties": {
-                    "gerrit-workflow.gerritServerURL": {
-                        "type": "string",
+                    "gerrit-workflow.gerritReviewConfig": {
+                        "type": "object",
                         "default": "",
-                        "description": "URL to your Private/Public Gerrit Server"
-                    },
-                    "gerrit-workflow.reviewBranchNamePrefix": {
-                        "type": "string",
-                        "default": "review/",
-                        "description": "Prefix to use for names of review branches"
+                        "description": "Gerrit Review Configuration (contains URL(serverurl), Username (username), Project (defaultbranch), Branch (defaultbranch) and Remote(defaultremote))"
                     }
                 }
             }

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { get, update } from "./dataStore";
-import { GitExtension, Repository } from "./git.api";
 import { getDefaultWorkspaceConnectionURL, request } from "./request";
+import { chooseGitRepository } from "./review";
 
 export class TreeItem extends vscode.TreeItem {
     parent: TreeItem | undefined;
@@ -209,9 +209,10 @@ export class PatchSetTreeItem extends TreeItem {
     }
 
     async compareWith() {
-        const remote = this.getRemoteInfo();
-        const repo = this.getRepository(remote[0]);
+        const repo = await chooseGitRepository("Compare with");
+        if (!repo) throw new Error(`cannot locate git repository.`);
 
+        const remote = this.getRemoteInfo();
         await repo.fetch({ remote: remote[0], ref: remote[1] });
 
         const commit = await repo.getCommit("FETCH_HEAD");
@@ -222,12 +223,13 @@ export class PatchSetTreeItem extends TreeItem {
     }
 
     async checkout(forReview: boolean = false) {
-        const remote = this.getRemoteInfo();
-        const changeInfo = (this.parent as ChangeTreeItem).changeInfo;
-        const repo = this.getRepository(remote[0]);
+        const repo = await chooseGitRepository("Checkout");
+        if (!repo) throw new Error(`cannot locate git repository.`);
 
+        const remote = this.getRemoteInfo();
         await repo.fetch({ remote: remote[0], ref: remote[1] });
 
+        const changeInfo = (this.parent as ChangeTreeItem).changeInfo;
         const branchNamePrefix = "review";
         const changeNumber = changeInfo._number;
         const revisionNumber = this.revisionNumber;
@@ -244,32 +246,6 @@ export class PatchSetTreeItem extends TreeItem {
         } catch (error: any) {
             throw new Error(error.stderr);
         }
-    }
-
-    private getRepository(remote: string): Repository {
-        const git = vscode.extensions
-            .getExtension<GitExtension>("vscode.git")
-            ?.exports.getAPI(1);
-        if (!git) throw new Error("cannot access git extension");
-
-        if (!vscode.workspace.workspaceFolders)
-            throw new Error("no workspace detected");
-
-        const workspace = vscode.workspace.workspaceFolders.find(
-            (workspace) => {
-                const repo = git.getRepository(workspace.uri);
-                if (!repo) return false;
-
-                const r = repo.state.remotes.find((r) => r.fetchUrl === remote);
-                if (!r) return false;
-
-                return true;
-            }
-        );
-        if (!workspace)
-            throw new Error(`cannot find repository for remote: ${remote}`);
-
-        return git.getRepository(workspace.uri)!;
     }
 
     private getRemoteInfo(): string[] {
