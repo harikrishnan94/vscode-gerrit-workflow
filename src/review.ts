@@ -48,15 +48,14 @@ async function chooseGitRepositoryUri(
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(
             vscode.window.activeTextEditor.document.uri
         );
-        if (workspaceFolder) {
-            if (hasRemote(workspaceFolder)) return workspaceFolder.uri;
-        }
+        if (workspaceFolder && hasRemote(workspaceFolder))
+            return workspaceFolder.uri;
     }
 
     if (!vscode.workspace.workspaceFolders) return undefined;
 
     let workspaceFolders: vscode.QuickPickItem[] = [];
-    for (const workspaceFolder of vscode.workspace.workspaceFolders!) {
+    for (const workspaceFolder of vscode.workspace.workspaceFolders) {
         if (hasRemote(workspaceFolder))
             workspaceFolders.push({
                 label: workspaceFolder.uri.toString(),
